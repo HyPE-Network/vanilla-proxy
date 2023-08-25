@@ -1,0 +1,15 @@
+
+[Bot]
+  DisplayName = "egor"
+  Enabled = false
+  XUID = ""
+
+[Connection]
+  ProxyAddress = "127.0.0.1:19134"
+  RemoteAddress = "127.0.0.1:19132"
+
+[WorldBorder]
+  MaxX = 1000
+  MaxZ = 1000
+  MinX = -1000
+  MinZ = -1000
