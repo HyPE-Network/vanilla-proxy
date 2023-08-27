@@ -12,6 +12,7 @@ type CommandManager struct {
 
 type CommandExecutor interface {
 	Execute(sender.CommandSender, []string) error
+	ForPlayer() bool
 }
 
 func InitManager() *CommandManager {

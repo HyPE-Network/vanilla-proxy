@@ -20,8 +20,10 @@ type CommandRequestHandler struct {
 func (AvailableCommandsHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.AvailableCommands)
 
-	for _, command := range proxy.ProxyInstance.CommandManager.Commands {
-		dataPacket.Commands = append(dataPacket.Commands, command)
+	for executor, command := range proxy.ProxyInstance.CommandManager.Commands {
+		if executor.ForPlayer() {
+			dataPacket.Commands = append(dataPacket.Commands, command)
+		}
 	}
 
 	// todo: hack

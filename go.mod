@@ -10,9 +10,13 @@ require (
 	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 )
 
-require golang.org/x/sys v0.11.0 // indirect
+require (
+	github.com/pkg/errors v0.9.1 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+)
 
 require (
+	github.com/DEBANMC/valve-rcon v1.0.5
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect

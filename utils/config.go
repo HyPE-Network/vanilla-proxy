@@ -23,6 +23,11 @@ type Config struct {
 		MaxX int32
 		MaxZ int32
 	}
+	Rcon struct {
+		Enabled  bool
+		Port     int
+		Password string
+	}
 }
 
 func ReadConfig() Config {
@@ -64,6 +69,10 @@ func ReadConfig() Config {
 		c.WorldBorder.MaxZ = 5000
 		c.WorldBorder.MinX = -5000
 		c.WorldBorder.MinZ = -5000
+	}
+
+	if c.Rcon.Enabled && (c.Rcon.Port == 0 || c.Rcon.Password == "") {
+		panic("Rcon is enabled and not configured in config!")
 	}
 
 	data, _ = toml.Marshal(c)

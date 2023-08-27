@@ -1,6 +1,6 @@
 
 [Bot]
-  DisplayName = "egor"
+  DisplayName = "botik"
   Enabled = false
   XUID = ""
 
@@ -8,8 +8,13 @@
   ProxyAddress = "127.0.0.1:19134"
   RemoteAddress = "127.0.0.1:19132"
 
+[Rcon]
+  Enabled = false
+  Password = "948561"
+  Port = 19130
+
 [WorldBorder]
-  MaxX = 1000
-  MaxZ = 1000
-  MinX = -1000
-  MinZ = -1000
+  MaxX = 5000
+  MaxZ = 5000
+  MinX = -5000
+  MinZ = -5000

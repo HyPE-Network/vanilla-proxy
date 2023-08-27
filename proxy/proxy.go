@@ -68,6 +68,10 @@ func New(config utils.Config, hm human.HumanManager) *Proxy {
 func (arg *Proxy) Start(h handler.HandlerManager) error {
 	arg.Handlers = h
 
+	if arg.Config.Rcon.Enabled {
+		go command.InitRCON(arg.CommandManager.Commands, arg.Config.Rcon.Port, arg.Config.Rcon.Password)
+	}
+
 	p, err := minecraft.NewForeignStatusProvider(arg.Config.Connection.RemoteAddress)
 	if err != nil {
 		return err
@@ -84,7 +88,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	defer arg.Stop()
 
 	log.Logger.Debugln("Original server address:", arg.Config.Connection.RemoteAddress, "public address:", arg.Config.Connection.ProxyAddress)
-	log.Logger.Debugln("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
+	log.Logger.Println("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
 
 	for {
 		c, err := arg.Listener.Accept()
