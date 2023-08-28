@@ -17,16 +17,21 @@ type Config struct {
 		XUID        string
 		DisplayName string
 	}
-	WorldBorder struct {
-		MinX int32
-		MinZ int32
-		MaxX int32
-		MaxZ int32
-	}
 	Rcon struct {
 		Enabled  bool
 		Port     int
 		Password string
+	}
+	Server struct {
+		ViewDistance int32
+		Whitelist    bool
+	}
+	WorldBorder struct {
+		Enabled bool
+		MinX    int32
+		MinZ    int32
+		MaxX    int32
+		MaxZ    int32
 	}
 }
 
@@ -64,11 +69,15 @@ func ReadConfig() Config {
 		panic("RemoteAddress is not assigned in config!")
 	}
 
-	if c.WorldBorder.MaxX == 0 && c.WorldBorder.MaxZ == 0 && c.WorldBorder.MinX == 0 && c.WorldBorder.MinZ == 0 {
-		c.WorldBorder.MaxX = 5000
-		c.WorldBorder.MaxZ = 5000
-		c.WorldBorder.MinX = -5000
-		c.WorldBorder.MinZ = -5000
+	if c.WorldBorder.Enabled && c.WorldBorder.MaxX == 0 && c.WorldBorder.MaxZ == 0 && c.WorldBorder.MinX == 0 && c.WorldBorder.MinZ == 0 {
+		c.WorldBorder.MaxX = 1200
+		c.WorldBorder.MaxZ = 1200
+		c.WorldBorder.MinX = -1200
+		c.WorldBorder.MinZ = -1200
+	}
+
+	if c.Server.ViewDistance == 0 {
+		c.Server.ViewDistance = 10
 	}
 
 	if c.Rcon.Enabled && (c.Rcon.Port == 0 || c.Rcon.Password == "") {
