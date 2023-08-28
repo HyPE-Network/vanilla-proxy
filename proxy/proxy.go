@@ -38,7 +38,7 @@ func New(config utils.Config, hm human.HumanManager) *Proxy {
 	block.Init()
 
 	Proxy := &Proxy{
-		Worlds:         world.Init(math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ)),
+		Worlds:         world.Init(config.WorldBorder.Enabled, math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ)),
 		Config:         config,
 		PlayerManager:  hm,
 		CommandManager: command.InitManager(),

@@ -13,7 +13,11 @@
   Password = "948561"
   Port = 19130
 
+[Server]
+  ViewDistance = 0
+
 [WorldBorder]
+  Enable = false
   MaxX = 5000
   MaxZ = 5000
   MinX = -5000

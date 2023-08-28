@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"vanilla-proxy/proxy"
 	"vanilla-proxy/proxy/player/human"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -28,10 +29,24 @@ func (CloseInventoryHandler) Handle(pk packet.Packet, player human.Human) (bool,
 type OpenInventoryHandler struct {
 }
 
+type OpenInventoryHandlerBoarder struct {
+}
+
 func (OpenInventoryHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.ContainerOpen)
 
 	player.GetData().Windows = dataPacket.WindowID
+
+	return true, pk, nil
+}
+
+func (OpenInventoryHandlerBoarder) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+	dataPacket := pk.(*packet.ContainerOpen)
+
+	isInside := proxy.ProxyInstance.Worlds.Border.IsPositionInside([]int32{dataPacket.ContainerPosition.X(), dataPacket.ContainerPosition.Y(), dataPacket.ContainerPosition.Z()})
+	if !isInside {
+		return false, pk, nil
+	}
 
 	return true, pk, nil
 }

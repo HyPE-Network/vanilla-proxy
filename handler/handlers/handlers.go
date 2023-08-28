@@ -3,6 +3,7 @@ package handlers
 import (
 	"vanilla-proxy/handler"
 	"vanilla-proxy/log"
+	"vanilla-proxy/proxy"
 	"vanilla-proxy/proxy/player/human"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
@@ -33,36 +34,45 @@ var ignored = []uint32{
 	packet.IDSubChunkRequest,
 }
 
-type HManager struct {
+type handlerManager struct {
 	PacketHandlers map[uint32][]handler.PacketHandler
 }
 
-func New() HManager {
-	return HManager{PacketHandlers: registerHandlers()}
+func New() handlerManager {
+	return handlerManager{PacketHandlers: registerHandlers()}
 }
 
 func registerHandlers() map[uint32][]handler.PacketHandler {
 	var handlers = make(map[uint32][]handler.PacketHandler)
 
-	handlers[packet.IDSubChunkRequest] = []handler.PacketHandler{SubChunkRequestHandler{}}
 	handlers[packet.IDSubChunk] = []handler.PacketHandler{SubChunkHandler{}}
-	handlers[packet.IDLevelChunk] = []handler.PacketHandler{LevelChunkHandler{}}
+
+	if proxy.ProxyInstance.Worlds.BoarderEnabled {
+		handlers[packet.IDSubChunkRequest] = []handler.PacketHandler{SubChunkRequestHandler{}}
+		handlers[packet.IDSubChunk] = append(handlers[packet.IDSubChunk], SubChunkHandlerBoarder{})
+		handlers[packet.IDLevelChunk] = []handler.PacketHandler{LevelChunkHandler{}}
+		handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandlerBoarder{}}
+	}
+
 	handlers[packet.IDModalFormResponse] = []handler.PacketHandler{ModalFormResponseHandler{}}
 	handlers[packet.IDPlayerAuthInput] = []handler.PacketHandler{PlayerInputHandler{}}
-	handlers[packet.IDChunkRadiusUpdated] = []handler.PacketHandler{UpdateRadiusHandler{}}
-	handlers[packet.IDRequestChunkRadius] = []handler.PacketHandler{RequestRadiusHandler{}}
+
+	handlers[packet.IDChunkRadiusUpdated] = []handler.PacketHandler{UpdateRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
+	handlers[packet.IDRequestChunkRadius] = []handler.PacketHandler{RequestRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
+
 	handlers[packet.IDInventoryTransaction] = []handler.PacketHandler{InventoryTransactionHandler{}}
-	handlers[packet.IDPacketViolationWarning] = []handler.PacketHandler{MalformedHandler{}}
 	handlers[packet.IDContainerClose] = []handler.PacketHandler{CloseInventoryHandler{}}
 	handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandler{}}
 
 	handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
 	handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
 
+	handlers[packet.IDPacketViolationWarning] = []handler.PacketHandler{MalformedHandler{}}
+
 	return handlers
 }
 
-func (hm *HManager) RegisterHandler(id int, packetHandler handler.PacketHandler) {
+func (hm *handlerManager) RegisterHandler(id int, packetHandler handler.PacketHandler) {
 	_, ok := hm.PacketHandlers[uint32(id)]
 	if ok {
 		hm.PacketHandlers[uint32(id)] = append(hm.PacketHandlers[uint32(id)], packetHandler)
@@ -71,7 +81,7 @@ func (hm *HManager) RegisterHandler(id int, packetHandler handler.PacketHandler)
 	}
 }
 
-func (hm HManager) HandlePacket(pk packet.Packet, player human.Human, sender string) (bool, packet.Packet, error) {
+func (hm handlerManager) HandlePacket(pk packet.Packet, player human.Human, sender string) (bool, packet.Packet, error) {
 	var err error
 	var packetHandlers []handler.PacketHandler
 	var sendPacket = true // is packet will be sent to original (true by default, may be switched by handlers)

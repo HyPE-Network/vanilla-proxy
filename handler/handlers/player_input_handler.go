@@ -31,7 +31,7 @@ func (PlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, pa
 				}
 			}
 
-			if !proxy.ProxyInstance.Worlds.Border.IsXZInside(bPos.X(), bPos.Z()) {
+			if proxy.ProxyInstance.Worlds.BoarderEnabled && !proxy.ProxyInstance.Worlds.Border.IsXZInside(bPos.X(), bPos.Z()) {
 				player.SendMessage("§cActions outside the world are prohibited!")
 				return false, pk, nil
 			}

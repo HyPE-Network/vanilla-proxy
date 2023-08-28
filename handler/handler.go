@@ -7,7 +7,7 @@ import (
 )
 
 type PacketHandler interface {
-	Handle(packet.Packet, human.Human) (bool, packet.Packet, error)
+	Handle(packet.Packet, human.Human) (bool, packet.Packet, error) // send packet to destination, packet, error
 }
 
 type HandlerManager interface {

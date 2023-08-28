@@ -6,26 +6,26 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-var radius int32 = 8
-
 type UpdateRadiusHandler struct {
+	radius int32
 }
 
 type RequestRadiusHandler struct {
+	radius int32
 }
 
-func (UpdateRadiusHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+func (uh UpdateRadiusHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.ChunkRadiusUpdated)
-	dataPacket.ChunkRadius = radius
+	dataPacket.ChunkRadius = uh.radius
 
-	player.GetData().GameData.ChunkRadius = radius
+	player.GetData().GameData.ChunkRadius = uh.radius
 
 	return true, pk, nil
 }
 
-func (RequestRadiusHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+func (rh RequestRadiusHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.RequestChunkRadius)
-	dataPacket.ChunkRadius = radius
+	dataPacket.ChunkRadius = rh.radius
 
 	return true, pk, nil
 }
