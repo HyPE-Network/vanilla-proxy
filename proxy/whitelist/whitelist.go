@@ -62,15 +62,31 @@ func Init(commandManager *command.CommandManager) *WhitelistManager {
 func (wm *WhitelistManager) HasPlayer(name string, xuid string) bool {
 	for player_name, player_xuid := range wm.Players {
 		if strings.EqualFold(player_xuid, xuid) {
+			if !strings.EqualFold(player_name, name) {
+				delete(wm.Players, player_name)
+				wm.Players[name] = xuid
+				wm.save()
+			}
+
 			return true
 		}
 
 		if strings.EqualFold(player_name, name) {
-			if xuid != "" {
+			if xuid != "" && player_xuid == "none" {
 				wm.Players[player_name] = xuid
 				wm.save()
 			}
 
+			return true
+		}
+	}
+
+	return false
+}
+
+func (wm *WhitelistManager) HasPlayerName(name string) bool {
+	for player_name := range wm.Players {
+		if strings.EqualFold(player_name, name) {
 			return true
 		}
 	}
@@ -97,17 +113,17 @@ func (wm *WhitelistManager) save() {
 }
 
 func (wm *WhitelistManager) AddPlayer(name string) bool {
-	if wm.HasPlayer(name, "") {
+	if wm.HasPlayerName(name) {
 		return false
 	}
 
-	wm.Players[strings.ToLower(name)] = ""
+	wm.Players[strings.ToLower(name)] = "none"
 	wm.save()
 	return true
 }
 
 func (wm *WhitelistManager) RemovePlayer(name string) bool {
-	if !wm.HasPlayer(name, "") {
+	if !wm.HasPlayerName(name) {
 		return false
 	}
 
