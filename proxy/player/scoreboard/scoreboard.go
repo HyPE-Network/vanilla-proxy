@@ -3,7 +3,8 @@ package scoreboard
 import (
 	"fmt"
 	"strings"
-	"vanilla-proxy/log"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
 
 	"golang.org/x/exp/slices"
 )

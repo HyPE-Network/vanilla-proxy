@@ -1,7 +1,7 @@
 package data
 
 import (
-	"vanilla-proxy/proxy/player/form"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
 
 	"github.com/df-mc/atomic"
 

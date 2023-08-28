@@ -2,7 +2,8 @@ package command
 
 import (
 	"strings"
-	"vanilla-proxy/proxy/command/sender"
+
+	"github.com/HyPE-Network/vanilla-proxy/proxy/command/sender"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )

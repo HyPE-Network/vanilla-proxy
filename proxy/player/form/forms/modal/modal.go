@@ -3,10 +3,11 @@ package modal
 import (
 	"encoding/json"
 	"math/rand"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy/player"
-	"vanilla-proxy/proxy/player/form"
-	"vanilla-proxy/utils"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
+	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )

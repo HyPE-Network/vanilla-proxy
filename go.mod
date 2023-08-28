@@ -1,4 +1,4 @@
-module vanilla-proxy
+module github.com/HyPE-Network/vanilla-proxy
 
 go 1.21.0
 

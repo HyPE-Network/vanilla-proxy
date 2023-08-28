@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"vanilla-proxy/handler"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy"
-	"vanilla-proxy/proxy/player/human"
+	"github.com/HyPE-Network/vanilla-proxy/handler"
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )

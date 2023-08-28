@@ -1,7 +1,7 @@
 package world
 
 import (
-	"vanilla-proxy/math"
+	"github.com/HyPE-Network/vanilla-proxy/math"
 )
 
 type Worlds struct {

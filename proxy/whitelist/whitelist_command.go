@@ -3,7 +3,8 @@ package whitelist
 import (
 	"fmt"
 	"strings"
-	"vanilla-proxy/proxy/command/sender"
+
+	"github.com/HyPE-Network/vanilla-proxy/proxy/command/sender"
 )
 
 type WhitelistCommandExecutor struct {

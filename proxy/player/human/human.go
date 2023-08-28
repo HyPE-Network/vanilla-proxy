@@ -1,10 +1,10 @@
 package human
 
 import (
-	"vanilla-proxy/proxy/inventory"
-	"vanilla-proxy/proxy/player/data"
-	"vanilla-proxy/proxy/player/scoreboard"
-	"vanilla-proxy/proxy/session"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/sandertv/gophertunnel/minecraft"

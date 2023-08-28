@@ -1,8 +1,8 @@
 package broadcaster
 
 import (
-	"vanilla-proxy/proxy/scheduler"
-	"vanilla-proxy/server"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/scheduler"
+	"github.com/HyPE-Network/vanilla-proxy/server"
 )
 
 var messages []string

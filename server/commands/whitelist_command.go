@@ -1,7 +1,7 @@
 package server
 
 import (
-	"vanilla-proxy/proxy/command/sender"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/command/sender"
 )
 
 type WhitelistCommandExecutor struct {

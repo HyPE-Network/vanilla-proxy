@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"vanilla-proxy/log"
-	"vanilla-proxy/utils"
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/google/uuid"
 	"github.com/sandertv/gophertunnel/minecraft"

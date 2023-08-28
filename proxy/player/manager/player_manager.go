@@ -3,10 +3,11 @@ package manager
 import (
 	"math"
 	"strings"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy/player"
-	"vanilla-proxy/proxy/player/human"
-	"vanilla-proxy/proxy/session"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 
 	"github.com/sandertv/gophertunnel/minecraft"
 )

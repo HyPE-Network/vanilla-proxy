@@ -1,7 +1,7 @@
 package server
 
 import (
-	"vanilla-proxy/proxy"
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )

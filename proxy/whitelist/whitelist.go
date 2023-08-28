@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	"vanilla-proxy/proxy/command"
+
+	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )

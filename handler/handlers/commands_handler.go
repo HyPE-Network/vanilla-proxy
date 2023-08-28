@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"strings"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy"
-	"vanilla-proxy/proxy/player/human"
-	"vanilla-proxy/utils/color"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
+	"github.com/HyPE-Network/vanilla-proxy/utils/color"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"

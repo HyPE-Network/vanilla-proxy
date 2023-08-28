@@ -2,14 +2,15 @@ package player
 
 import (
 	"math"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy/block"
-	"vanilla-proxy/proxy/inventory"
-	"vanilla-proxy/proxy/player/data"
-	"vanilla-proxy/proxy/player/form"
-	"vanilla-proxy/proxy/player/scoreboard"
-	"vanilla-proxy/proxy/session"
-	"vanilla-proxy/utils"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/block"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
+	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/sandertv/gophertunnel/minecraft"

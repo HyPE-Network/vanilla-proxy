@@ -2,7 +2,8 @@ package command
 
 import (
 	"strings"
-	"vanilla-proxy/log"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
 
 	rcon "github.com/DEBANMC/valve-rcon"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"

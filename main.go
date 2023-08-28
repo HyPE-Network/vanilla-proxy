@@ -1,11 +1,11 @@
 package main
 
 import (
-	"vanilla-proxy/handler/handlers"
-	"vanilla-proxy/log"
-	"vanilla-proxy/proxy"
-	"vanilla-proxy/proxy/player/manager"
-	"vanilla-proxy/utils"
+	"github.com/HyPE-Network/vanilla-proxy/handler/handlers"
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/manager"
+	"github.com/HyPE-Network/vanilla-proxy/utils"
 )
 
 func main() {
