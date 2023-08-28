@@ -47,7 +47,7 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 
 	handlers[packet.IDSubChunk] = []handler.PacketHandler{SubChunkHandler{}}
 
-	if proxy.ProxyInstance.Worlds.BoarderEnabled {
+	if proxy.ProxyInstance.Worlds != nil {
 		handlers[packet.IDSubChunkRequest] = []handler.PacketHandler{SubChunkRequestHandler{}}
 		handlers[packet.IDSubChunk] = append(handlers[packet.IDSubChunk], SubChunkHandlerBoarder{})
 		handlers[packet.IDLevelChunk] = []handler.PacketHandler{LevelChunkHandler{}}

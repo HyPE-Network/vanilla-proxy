@@ -5,13 +5,11 @@ import (
 )
 
 type Worlds struct {
-	BoarderEnabled bool
-	Border         math.Area2
+	Border math.Area2
 }
 
-func Init(enabled bool, border *math.Area2) *Worlds {
+func Init(border *math.Area2) *Worlds {
 	return &Worlds{
-		BoarderEnabled: enabled,
-		Border:         *border,
+		Border: *border,
 	}
 }

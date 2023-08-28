@@ -14,6 +14,7 @@ import (
 	"vanilla-proxy/proxy/console/bash"
 	"vanilla-proxy/proxy/console/bots"
 	"vanilla-proxy/proxy/player/human"
+	"vanilla-proxy/proxy/whitelist"
 	"vanilla-proxy/proxy/world"
 	"vanilla-proxy/utils"
 
@@ -25,23 +26,33 @@ import (
 var ProxyInstance *Proxy
 
 type Proxy struct {
-	Worlds         *world.Worlds
-	Config         utils.Config
-	PlayerManager  human.HumanManager
-	Handlers       handler.HandlerManager
-	CommandManager *command.CommandManager
-	Listener       *minecraft.Listener
-	CommandSender  console.CommandSender
+	Worlds           *world.Worlds
+	Config           utils.Config
+	PlayerManager    human.HumanManager
+	Handlers         handler.HandlerManager
+	CommandManager   *command.CommandManager
+	Listener         *minecraft.Listener
+	CommandSender    console.CommandSender
+	WhitelistManager *whitelist.WhitelistManager
 }
 
 func New(config utils.Config, hm human.HumanManager) *Proxy {
 	block.Init()
 
+	commandManager := command.InitManager(config.Server.Ops)
+
 	Proxy := &Proxy{
-		Worlds:         world.Init(config.WorldBorder.Enabled, math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ)),
 		Config:         config,
 		PlayerManager:  hm,
-		CommandManager: command.InitManager(),
+		CommandManager: commandManager,
+	}
+
+	if config.WorldBorder.Enabled {
+		Proxy.Worlds = world.Init(math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ))
+	}
+
+	if config.Server.Whitelist {
+		Proxy.WhitelistManager = whitelist.Init(commandManager)
 	}
 
 	os := runtime.GOOS
@@ -77,7 +88,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		return err
 	}
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
-		AuthenticationDisabled: false,
+		AuthenticationDisabled: arg.Config.Server.DisableXboxAuth,
 		StatusProvider:         p,
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
@@ -159,20 +170,15 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	g.Wait()
 
 	if !success {
-		err := conn.Close()
-		if err != nil {
-			log.Logger.Errorln(err)
-		}
-		err = serverConn.Close()
-		if err != nil {
-			log.Logger.Errorln(err)
-		}
-		err = arg.Listener.Disconnect(conn, "connection lost")
-		if err != nil {
-			log.Logger.Errorln(err)
-		}
-
+		arg.CloseConnections(conn, serverConn)
 		return
+	}
+
+	if arg.Config.Server.Whitelist {
+		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
+			arg.CloseConnections(conn, serverConn)
+			return
+		}
 	}
 
 	pl := arg.PlayerManager.AddPlayer(conn, serverConn)
@@ -238,5 +244,20 @@ func (arg *Proxy) SendConsoleCommand(cmd string) {
 		if err := arg.CommandSender.SendCommand(cmd); err != nil {
 			log.Logger.Errorln("CommandSender:", err)
 		}
+	}
+}
+
+func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.Conn) {
+	err := conn.Close()
+	if err != nil {
+		log.Logger.Errorln(err)
+	}
+	err = serverConn.Close()
+	if err != nil {
+		log.Logger.Errorln(err)
+	}
+	err = arg.Listener.Disconnect(conn, "connection lost")
+	if err != nil {
+		log.Logger.Errorln(err)
 	}
 }

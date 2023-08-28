@@ -21,7 +21,7 @@ func (AvailableCommandsHandler) Handle(pk packet.Packet, player human.Human) (bo
 	dataPacket := pk.(*packet.AvailableCommands)
 
 	for executor, command := range proxy.ProxyInstance.CommandManager.Commands {
-		if executor.ForPlayer() {
+		if executor.ForPlayer() || proxy.ProxyInstance.CommandManager.IsOp(player.GetName()) {
 			dataPacket.Commands = append(dataPacket.Commands, command)
 		}
 	}

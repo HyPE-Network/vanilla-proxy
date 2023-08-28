@@ -14,10 +14,13 @@
   Port = 19130
 
 [Server]
-  ViewDistance = 0
+  DisableXboxAuth = false
+  Ops = ["PersonalSpark46"]
+  ViewDistance = 10
+  Whitelist = true
 
 [WorldBorder]
-  Enable = false
+  Enabled = true
   MaxX = 5000
   MaxZ = 5000
   MinX = -5000

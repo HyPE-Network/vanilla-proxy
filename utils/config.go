@@ -23,8 +23,10 @@ type Config struct {
 		Password string
 	}
 	Server struct {
-		ViewDistance int32
-		Whitelist    bool
+		ViewDistance    int32
+		Whitelist       bool
+		DisableXboxAuth bool
+		Ops             []string
 	}
 	WorldBorder struct {
 		Enabled bool
