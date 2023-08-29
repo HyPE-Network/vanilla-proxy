@@ -18,7 +18,7 @@ func (rs *RconSender) SendMessage(mess string) {
 }
 
 func InitRCON(commands map[CommandExecutor]protocol.Command, port int, pass string) {
-	rconSrv := rcon.NewRCON("127.0.0.1", port, pass)
+	rconSrv := rcon.NewRCON("0.0.0.0", port, pass)
 	rconSrv.SetBanList([]string{})
 
 	rconSrv.OnCommand(func(commandMessage string, client rcon.Client) {
