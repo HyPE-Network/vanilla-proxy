@@ -38,7 +38,13 @@ type Config struct {
 }
 
 func ReadConfig() Config {
-	c := Config{}
+	c := Config{
+		Connection: struct {
+			ProxyAddress  string
+			RemoteAddress string
+		}{"0.0.0.0:19134", "0.0.0.0:19132"},
+	}
+
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		f, err := os.Create("config.toml")
 		if err != nil {
@@ -65,10 +71,6 @@ func ReadConfig() Config {
 
 	if c.Connection.ProxyAddress == "" {
 		panic("ProxyAddress is not assigned in config!")
-	}
-
-	if c.Connection.RemoteAddress == "" {
-		panic("RemoteAddress is not assigned in config!")
 	}
 
 	if c.WorldBorder.Enabled && c.WorldBorder.MaxX == 0 && c.WorldBorder.MaxZ == 0 && c.WorldBorder.MinX == 0 && c.WorldBorder.MinZ == 0 {
