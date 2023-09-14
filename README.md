@@ -3,6 +3,7 @@
 2. Download and run Minecraft [Bedrock Dedicated Server](https://www.minecraft.net/en-us/download/server/bedrock).
 
 ```You must set online-mode=false in BDS server.properties```
+
 3. Run in the console:
 ```
 git clone https://github.com/HyPE-Network/vanilla-proxy
