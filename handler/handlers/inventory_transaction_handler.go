@@ -15,10 +15,6 @@ type InventoryTransactionHandler struct {
 func (InventoryTransactionHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.InventoryTransaction)
 
-	if len(dataPacket.Actions) > 0 && dataPacket.Actions[0].SourceType == 99999 { // cheats
-		return false, pk, nil
-	}
-
 	switch td := dataPacket.TransactionData.(type) {
 	case *protocol.UseItemTransactionData:
 		if td.ActionType == protocol.UseItemActionClickBlock {
