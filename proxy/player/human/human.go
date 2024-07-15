@@ -37,6 +37,8 @@ type Human interface {
 	SendUpdateBlock(protocol.BlockPos, uint32)
 	SendAirUpdate(protocol.BlockPos)
 
+	PlaySound(string, mgl32.Vec3, float32, float32)
+
 	InOverworld() bool
 	InNether() bool
 	InEnd() bool
@@ -50,6 +52,13 @@ type Human interface {
 	DataPacketToServer(packet.Packet)
 
 	SendInventory(inventory.Inventory)
+
+	SendXUIDToAddon()
+
+	IsOP() bool
+
+	PlayerPermissions() byte
+	CommandPermissions() byte
 }
 
 type HumanManager interface {
