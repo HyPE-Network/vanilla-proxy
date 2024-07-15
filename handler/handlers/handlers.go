@@ -55,7 +55,7 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 		handlers[packet.IDInventoryTransaction] = []handler.PacketHandler{InventoryTransactionHandler{}}
 	}
 
-	handlers[packet.IDModalFormResponse] = []handler.PacketHandler{ModalFormResponseHandler{}}
+	// handlers[packet.IDModalFormResponse] = []handler.PacketHandler{ModalFormResponseHandler{}}
 	handlers[packet.IDPlayerAuthInput] = []handler.PacketHandler{PlayerInputHandler{}}
 
 	handlers[packet.IDChunkRadiusUpdated] = []handler.PacketHandler{UpdateRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
@@ -64,8 +64,8 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 	handlers[packet.IDContainerClose] = []handler.PacketHandler{CloseInventoryHandler{}}
 	handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandler{}}
 
-	handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
-	handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
+	// handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
+	// handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
 
 	handlers[packet.IDPacketViolationWarning] = []handler.PacketHandler{MalformedHandler{}}
 
