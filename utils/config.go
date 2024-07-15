@@ -27,6 +27,7 @@ type Config struct {
 		Whitelist       bool
 		DisableXboxAuth bool
 		Ops             []string
+		Prefix          string
 	}
 	WorldBorder struct {
 		Enabled bool
@@ -34,6 +35,28 @@ type Config struct {
 		MinZ    int32
 		MaxX    int32
 		MaxZ    int32
+	}
+	Api struct {
+		ApiHost string
+		ApiKey  string
+	}
+	Resources struct {
+		PackURLs []string
+	}
+	Database struct {
+		Host string
+		Port int
+		Key  string
+		Name string
+	}
+	Logging struct {
+		DiscordCommandLogsWebhook string
+		DiscordChatLogsWebhook    string
+		DiscordSignLogsWebhook    string
+		DiscordSignLogsIconURL    string
+		DiscordErrorLogsWebhook   string
+		DiscordErrorLogsIconUrl   string
+		DiscordStaffAlertsWebhook string
 	}
 }
 
