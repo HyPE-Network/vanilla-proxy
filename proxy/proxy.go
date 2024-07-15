@@ -1,7 +1,10 @@
 package proxy
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"net/http"
 	"runtime"
 	"strings"
 	"sync"
@@ -20,6 +23,7 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
+	"github.com/sandertv/gophertunnel/minecraft/resource"
 
 	"github.com/sandertv/gophertunnel/minecraft"
 )
@@ -88,9 +92,21 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	if err != nil {
 		return err
 	}
+
+	// Initialize an empty slice of *resource.Pack
+	var resourcePacks []*resource.Pack
+
+	// Loop through all the pack URLs and append each pack to the slice
+	for _, url := range arg.Config.Resources.PackURLs {
+		resourcePack := resource.MustReadURL(url)
+		resourcePacks = append(resourcePacks, resourcePack)
+	}
+
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
 		AuthenticationDisabled: arg.Config.Server.DisableXboxAuth,
 		StatusProvider:         p,
+		ResourcePacks:          resourcePacks,
+		TexturePacksRequired:   true,
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
 	if err != nil {
@@ -143,19 +159,15 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	}.Dial("raknet", arg.Config.Connection.RemoteAddress)
 
 	if err != nil {
-		log.Logger.Errorln(err)
+		log.Logger.Errorln("Error in establishing serverConn: ", err)
 		return
 	}
-
-	gd := serverConn.GameData()
-	gd.WorldSeed = 0
-	gd.ClientSideGeneration = false
 
 	var success = true
 	var g sync.WaitGroup
 	g.Add(2)
 	go func() {
-		if err := conn.StartGame(gd); err != nil {
+		if err := conn.StartGame(serverConn.GameData()); err != nil {
 			log.Logger.Errorln(err)
 			success = false
 		}
@@ -184,6 +196,8 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	pl := arg.PlayerManager.AddPlayer(conn, serverConn)
 	log.Logger.Infoln(pl.GetName(), "joined the server")
+	pl.SendXUIDToAddon()
+	arg.UpdatePlayerDetails(pl)
 
 	go func() { // client-proxy
 		for {
@@ -261,4 +275,55 @@ func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.C
 	if err != nil {
 		log.Logger.Errorln(err)
 	}
+}
+
+type PlayerDetails struct {
+	Xuid string `json:"xuid"`
+	Name string `json:"name"`
+	IP   string `json:"ip"`
+}
+
+func (arg *Proxy) UpdatePlayerDetails(player human.Human) {
+	xuid := player.GetSession().IdentityData.XUID
+
+	// Build the URI for the API request
+	uri := arg.Config.Api.ApiHost + "/api/moderation/playerDetails"
+	log.Logger.Printf("Sending \"%s\" playerDetails to: \"%s\"\n", player.GetName(), uri)
+
+	// Create the player details payload
+	playerDetails := PlayerDetails{
+		Xuid: xuid,
+		Name: player.GetName(),
+		IP:   strings.Split(player.GetSession().ClientData.ServerAddress, ":")[0],
+	}
+
+	// Convert player details to JSON
+	jsonData, err := json.Marshal(playerDetails)
+	if err != nil {
+		log.Logger.Errorln("Failed to marshal player details:", err)
+		return
+	}
+
+	// Create a new HTTP POST request
+	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Logger.Errorln("Failed to create new request:", err)
+		return
+	}
+
+	// Set the headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("authorization", arg.Config.Api.ApiKey)
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Logger.Errorln("Failed to send request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Log the response status
+	log.Logger.Printf("Sent playerDetails to: \"%s\", status: %d\n", uri, resp.StatusCode)
 }
