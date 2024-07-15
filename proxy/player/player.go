@@ -278,3 +278,52 @@ func (player *Player) SendInventory(inv inventory.Inventory) {
 		log.Logger.Errorln(err)
 	}
 }
+
+func (player *Player) PlaySound(soundName string, pos mgl32.Vec3, volume float32, pitch float32) {
+	pk := &packet.PlaySound{
+		SoundName: soundName,
+		Position:  pos,
+		Volume:    volume,
+		Pitch:     pitch,
+	}
+
+	player.DataPacket(pk)
+}
+
+func (player *Player) SendXUIDToAddon() {
+	playerXuid := player.GetSession().IdentityData.XUID
+	playerXuidTextPacket := &packet.Text{
+		TextType:         packet.TextTypeChat,
+		NeedsTranslation: false,
+		SourceName:       player.GetName(),
+		Message:          "[PROXY_SYSTEM] XUID=" + playerXuid,
+		Parameters:       nil,
+		XUID:             playerXuid,
+		PlatformChatID:   "",
+	}
+	player.DataPacketToServer(playerXuidTextPacket)
+}
+
+// IsOp checks if the player is an operator on the server.
+func (player *Player) IsOP() bool {
+	config := utils.ReadConfig()
+	return utils.StringInSlice(player.GetName(), config.Server.Ops)
+}
+
+// PlayerPermissions is the permission level of the player as it shows up in the player list built up using the PlayerList packet.
+func (player *Player) PlayerPermissions() byte {
+	if player.IsOP() {
+		return packet.PermissionLevelOperator
+	} else {
+		return packet.PermissionLevelMember
+	}
+}
+
+// CommandPermissions is a set of permissions that specify what commands a player is allowed to execute.
+func (player *Player) CommandPermissions() byte {
+	if player.IsOP() {
+		return packet.CommandPermissionLevelHost
+	} else {
+		return packet.CommandPermissionLevelNormal
+	}
+}
