@@ -64,9 +64,10 @@ func FormatTime(t time.Time) string {
 	return t.Format("15:04:05 2006.01.02") // magic numbers https://go.dev/src/time/format.go
 }
 
+// Fetches a tableName from the database
 func FetchDatabase[T any](tableName string) (map[string]T, error) {
 	dbConfig := ReadConfig().Database
-	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, dbConfig.Host)
+
 	uri := dbConfig.Host + ":" + fmt.Sprint(dbConfig.Port) + "/api/database/" + dbConfig.Name + "/table/" + tableName
 
 	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)

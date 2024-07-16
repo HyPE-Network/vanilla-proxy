@@ -1,6 +1,7 @@
 package custom_handlers
 
 import (
+	"log"
 	"strings"
 
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
@@ -46,6 +47,19 @@ func (CommandRequestHandler) Handle(pk packet.Packet, player human.Human) (bool,
 		player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
 		return false, pk, nil
 	}
+
+	// Command should be a custom `-` command
+	log.Println("Command: ", "-"+strings.TrimPrefix(dataPacket.CommandLine, "/"))
+	textPk := &packet.Text{
+		TextType:         packet.TextTypeChat,
+		NeedsTranslation: false,
+		SourceName:       player.GetName(),
+		Message:          "-" + strings.TrimPrefix(dataPacket.CommandLine, "/"),
+		Parameters:       []string{},
+		XUID:             player.GetSession().IdentityData.XUID,
+		PlatformChatID:   "",
+	}
+	player.DataPacketToServer(textPk)
 
 	return true, dataPacket, nil
 }

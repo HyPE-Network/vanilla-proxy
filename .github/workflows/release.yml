@@ -18,12 +18,6 @@ jobs:
         with:
           go-version: "1.22.4"
 
-      - name: Install rsrc
-        run: go install github.com/akavel/rsrc@latest
-
-      - name: Generate app.syso
-        run: rsrc -manifest app.manifest -o app.syso
-
       - name: Build
         run: GOOS=windows GOARCH=amd64 go build -o vanilla-proxy.exe .
 
