@@ -25,7 +25,7 @@ jobs:
         run: rsrc -manifest app.manifest -o app.syso
 
       - name: Build
-        run: GOOS=windows GOARCH=amd64 go build -ldflags -o vanilla-proxy.exe .
+        run: GOOS=windows GOARCH=amd64 go build -o vanilla-proxy.exe .
 
       - name: Create Release
         id: create_release
