@@ -69,6 +69,7 @@ func ReadConfig() Config {
 	}
 
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
+		log.Println("config.toml not found, creating default config...")
 		f, err := os.Create("config.toml")
 		if err != nil {
 			log.Fatalf("error creating config: %v", err)
