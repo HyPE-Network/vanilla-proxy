@@ -66,6 +66,7 @@ func FormatTime(t time.Time) string {
 
 func FetchDatabase[T any](tableName string) (map[string]T, error) {
 	dbConfig := ReadConfig().Database
+	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, dbConfig.Host)
 	uri := dbConfig.Host + ":" + fmt.Sprint(dbConfig.Port) + "/api/database/" + dbConfig.Name + "/table/" + tableName
 
 	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)
