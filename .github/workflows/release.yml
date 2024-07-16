@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - main  # Change to your default branch name if different
+      - master
 
 jobs:
   build:
