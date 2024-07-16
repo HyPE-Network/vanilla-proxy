@@ -13,7 +13,7 @@ import (
 
 func main() {
 	log.Logger = log.New()
-	log.Logger.Debugln("Logger has been started")
+	log.Logger.Debugln("Logger has been started!")
 
 	config := utils.ReadConfig()
 
