@@ -201,7 +201,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	pl.SendXUIDToAddon()
 	arg.UpdatePlayerDetails(pl)
 
-	go func() { // client-proxy
+	go func() { // client->proxy
+		defer arg.Listener.Disconnect(conn, "connection lost")
+		defer serverConn.Close()
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
@@ -215,8 +217,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 			if ok {
 				if err := serverConn.WritePacket(pk); err != nil {
-					if disconnect, ok := errors.Unwrap(err).(minecraft.DisconnectError); ok {
-						_ = arg.Listener.Disconnect(conn, disconnect.Error())
+					var disc minecraft.DisconnectError
+					if ok := errors.As(err, &disc); ok {
+						_ = arg.Listener.Disconnect(conn, disc.Error())
 					}
 					break
 				}
@@ -224,12 +227,15 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 		arg.deletePlayer(pl)
 	}()
-	go func() { // proxy-server
+	go func() { // proxy->server
+		defer serverConn.Close()
+		defer arg.Listener.Disconnect(conn, "connection lost")
 		for {
 			pk, err := serverConn.ReadPacket()
 			if err != nil {
-				if disconnect, ok := errors.Unwrap(err).(minecraft.DisconnectError); ok {
-					_ = arg.Listener.Disconnect(conn, disconnect.Error())
+				var disc minecraft.DisconnectError
+				if ok := errors.As(err, &disc); ok {
+					_ = arg.Listener.Disconnect(conn, disc.Error())
 				}
 				break
 			}
