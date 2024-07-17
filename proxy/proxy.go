@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
@@ -156,7 +157,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		KeepXBLIdentityData: true,
 		ClientData:          conn.ClientData(),
 		IdentityData:        conn.IdentityData(),
-	}.Dial("raknet", arg.Config.Connection.RemoteAddress)
+	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*60)
 
 	if err != nil {
 		log.Logger.Errorln("Error in establishing serverConn: ", err)
