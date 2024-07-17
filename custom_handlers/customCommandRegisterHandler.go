@@ -217,5 +217,5 @@ func (CustomCommandRegisterHandler) Handle(pk packet.Packet, player human.Human)
 	// Send the AvailableCommands packet to the player.
 	player.DataPacket(&availableCommands)
 
-	return true, dataPacket, nil
+	return false, dataPacket, nil
 }
