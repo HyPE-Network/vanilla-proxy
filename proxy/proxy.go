@@ -184,13 +184,13 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	g.Wait()
 
 	if !success {
-		arg.CloseConnections(conn, serverConn)
+		arg.CloseConnections(conn, serverConn, "Failed to establish a connection, please try again!")
 		return
 	}
 
 	if arg.Config.Server.Whitelist {
 		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
-			arg.CloseConnections(conn, serverConn)
+			arg.CloseConnections(conn, serverConn, "You are not whitelisted on this server!")
 			return
 		}
 	}
@@ -269,7 +269,7 @@ func (arg *Proxy) SendConsoleCommand(cmd string) {
 	}
 }
 
-func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.Conn) {
+func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.Conn, reason string) {
 	err := conn.Close()
 	if err != nil {
 		log.Logger.Errorln(err)
@@ -278,7 +278,7 @@ func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.C
 	if err != nil {
 		log.Logger.Errorln(err)
 	}
-	err = arg.Listener.Disconnect(conn, "connection lost")
+	err = arg.Listener.Disconnect(conn, reason)
 	if err != nil {
 		log.Logger.Errorln(err)
 	}
