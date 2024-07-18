@@ -163,29 +163,21 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		return
 	}
 
-	var success = true
 	var g sync.WaitGroup
 	g.Add(2)
 	go func() {
 		if err := conn.StartGame(serverConn.GameData()); err != nil {
-			log.Logger.Errorln(err)
-			success = false
+			panic(err)
 		}
 		g.Done()
 	}()
 	go func() {
 		if err := serverConn.DoSpawn(); err != nil {
-			log.Logger.Errorln(err)
-			success = false
+			panic(err)
 		}
 		g.Done()
 	}()
 	g.Wait()
-
-	if !success {
-		arg.CloseConnections(conn, serverConn)
-		return
-	}
 
 	if arg.Config.Server.Whitelist {
 		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
