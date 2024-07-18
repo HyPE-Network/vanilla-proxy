@@ -82,6 +82,7 @@ func New(config utils.Config, hm human.HumanManager) *Proxy {
 	return Proxy
 }
 
+// The following program implements a proxy that forwards players from one local address to a remote address.
 func (arg *Proxy) Start(h handler.HandlerManager) error {
 	arg.Handlers = h
 
@@ -114,29 +115,28 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		return err
 	}
 
-	defer arg.Stop()
-
 	log.Logger.Debugln("Original server address:", arg.Config.Connection.RemoteAddress, "public address:", arg.Config.Connection.ProxyAddress)
 	log.Logger.Println("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
 
+	defer arg.Stop()
 	for {
 		c, err := arg.Listener.Accept()
-
 		if err != nil {
 			log.Logger.Errorln(err)
 			continue
 		}
-
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
 }
 
+// Stop stops the proxy and closes all connections.
 func (arg *Proxy) Stop() {
 	arg.CommandSender.Close()
 	arg.PlayerManager.DeleteAll()
 	arg.Listener.Close()
 }
 
+// handleConn handles a new incoming minecraft.Conn from the minecraft.Listener passed.
 func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	if human, ok := arg.PlayerManager.PlayerList()[conn.IdentityData().DisplayName]; ok { // if the user is already in the system
 		err := conn.Close()
