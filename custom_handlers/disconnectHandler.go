@@ -11,6 +11,7 @@ type DisconnectHandler struct {
 
 func (DisconnectHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.Disconnect)
+
 	log.Logger.Debugln("Player has been disconnected with reason: ", dataPacket.Message)
 
 	player.Transfer("play.pokebedrock.com", 19132)

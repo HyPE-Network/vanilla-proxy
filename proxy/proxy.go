@@ -122,7 +122,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
-			panic(err)
+			return err
 		}
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
@@ -199,6 +199,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 			if err != nil {
 				break
 			}
+			log.Logger.Debugln("Client -> Proxy:", pk.ID())
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, pl, "Client")
 			if err != nil {
