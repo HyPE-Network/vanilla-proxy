@@ -122,7 +122,8 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
-			return err
+			log.Logger.Errorln(err)
+			continue
 		}
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
@@ -163,21 +164,29 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		return
 	}
 
+	var success = true
 	var g sync.WaitGroup
 	g.Add(2)
 	go func() {
 		if err := conn.StartGame(serverConn.GameData()); err != nil {
-			panic(err)
+			log.Logger.Errorln(err)
+			success = false
 		}
 		g.Done()
 	}()
 	go func() {
 		if err := serverConn.DoSpawn(); err != nil {
-			panic(err)
+			log.Logger.Errorln(err)
+			success = false
 		}
 		g.Done()
 	}()
 	g.Wait()
+
+	if !success {
+		arg.CloseConnections(conn, serverConn)
+		return
+	}
 
 	if arg.Config.Server.Whitelist {
 		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
@@ -199,7 +208,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 			if err != nil {
 				break
 			}
-			log.Logger.Debugln("Client -> Proxy:", pk.ID())
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, pl, "Client")
 			if err != nil {

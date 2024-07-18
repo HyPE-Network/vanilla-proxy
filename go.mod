@@ -29,3 +29,5 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 )
+
+replace github.com/sandertv/go-raknet => github.com/hashimthearab/go-raknet v1.14.2-0.20240712204703-9b99c862e9db
