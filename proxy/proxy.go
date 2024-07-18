@@ -122,8 +122,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
-			log.Logger.Errorln(err)
-			continue
+			panic(err)
 		}
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
@@ -157,7 +156,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		KeepXBLIdentityData: true,
 		ClientData:          conn.ClientData(),
 		IdentityData:        conn.IdentityData(),
-	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*60)
+	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*120)
 
 	if err != nil {
 		log.Logger.Errorln("Error in establishing serverConn: ", err)
