@@ -161,6 +161,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	if err != nil {
 		log.Logger.Errorln("Error in establishing serverConn: ", err)
+		arg.Listener.Disconnect(conn, err.Error())
 		return
 	}
 
@@ -270,11 +271,7 @@ func (arg *Proxy) SendConsoleCommand(cmd string) {
 }
 
 func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.Conn, reason string) {
-	err := conn.Close()
-	if err != nil {
-		log.Logger.Errorln(err)
-	}
-	err = serverConn.Close()
+	err := serverConn.Close()
 	if err != nil {
 		log.Logger.Errorln(err)
 	}
