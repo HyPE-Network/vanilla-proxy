@@ -61,11 +61,15 @@ type Config struct {
 }
 
 func ReadConfig() Config {
-	c := Config{
+	// Initialize with default values
+	defaultConfig := Config{
 		Connection: struct {
 			ProxyAddress  string
 			RemoteAddress string
-		}{"0.0.0.0:19134", "0.0.0.0:19132"},
+		}{
+			ProxyAddress:  "0.0.0.0:19132",
+			RemoteAddress: "0.0.0.0:19134",
+		},
 	}
 
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
@@ -74,7 +78,7 @@ func ReadConfig() Config {
 		if err != nil {
 			log.Fatalf("error creating config: %v", err)
 		}
-		data, err := toml.Marshal(c)
+		data, err := toml.Marshal(defaultConfig)
 		if err != nil {
 			log.Fatalf("error encoding default config: %v", err)
 		}
@@ -89,32 +93,54 @@ func ReadConfig() Config {
 		log.Fatalf("error reading config: %v", err)
 	}
 
+	c := Config{}
 	if err := toml.Unmarshal(data, &c); err != nil {
 		log.Fatalf("error decoding config: %v", err)
 	}
 
+	// Validate required fields and set defaults if necessary
 	if c.Connection.ProxyAddress == "" {
 		panic("ProxyAddress is not assigned in config!")
 	}
 
-	if c.WorldBorder.Enabled && c.WorldBorder.MaxX == 0 && c.WorldBorder.MaxZ == 0 && c.WorldBorder.MinX == 0 && c.WorldBorder.MinZ == 0 {
-		c.WorldBorder.MaxX = 1200
-		c.WorldBorder.MaxZ = 1200
-		c.WorldBorder.MinX = -1200
-		c.WorldBorder.MinZ = -1200
+	if c.Connection.RemoteAddress == "" {
+		panic("RemoteAddress is not assigned in config!")
 	}
 
-	if c.Server.ViewDistance == 0 {
-		c.Server.ViewDistance = 10
+	if c.Server.ViewDistance <= 0 {
+		panic("ViewDistance must be a value greater than 0!")
 	}
 
 	if c.Rcon.Enabled && (c.Rcon.Port == 0 || c.Rcon.Password == "") {
 		panic("Rcon is enabled and not configured in config!")
 	}
 
-	data, _ = toml.Marshal(c)
-	if err := os.WriteFile("config.toml", data, 0644); err != nil {
-		log.Fatalf("error writing config file: %v", err)
+	if c.Database.Host == "" {
+		panic("Database Host must be a valid address!")
+	}
+
+	if c.Database.Port == 0 {
+		panic("Database Port must be a valid port number!")
+	}
+
+	if c.Api.ApiHost == "" {
+		panic("API Host must be a valid address!")
+	}
+
+	if c.Logging.DiscordCommandLogsWebhook == "" {
+		panic("Discord Command Logs Webhook must be provided!")
+	}
+
+	if c.Logging.DiscordChatLogsWebhook == "" {
+		panic("Discord Chat Logs Webhook must be provided!")
+	}
+
+	if c.Logging.DiscordErrorLogsWebhook == "" {
+		panic("Discord Error Logs Webhook must be provided!")
+	}
+
+	if c.Logging.DiscordStaffAlertsWebhook == "" {
+		panic("Discord Staff Alerts Webhook must be provided!")
 	}
 
 	return c
