@@ -8,7 +8,6 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -146,7 +145,7 @@ func LogErrorToDiscord(err error) {
 	}
 
 	jsonParams, _ := json.Marshal(params)
-	req, _ := http.NewRequest("POST", os.Getenv("DISCORD_STAFF_ALERTS_WEBHOOK"), io.NopCloser(bytes.NewBuffer(jsonParams)))
+	req, _ := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
