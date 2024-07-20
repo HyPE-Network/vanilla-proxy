@@ -1,13 +1,11 @@
 package human
 
 import (
-	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -51,23 +49,12 @@ type Human interface {
 	DataPacket(packet.Packet)
 	DataPacketToServer(packet.Packet)
 
-	SendInventory(inventory.Inventory)
-
 	SendXUIDToAddon()
 
 	IsOP() bool
 
 	PlayerPermissions() byte
 	CommandPermissions() byte
-}
 
-type HumanManager interface {
-	AddPlayer(*minecraft.Conn, *minecraft.Conn) Human
-	DeletePlayer(Human)
-	DeleteAll()
-	GetPlayer(string) Human
-	GetPlayerExact(string) Human
-	PlayerList() map[string]Human
-	PlayersCount() int
-	IsOnline(string) bool
+	SetBDSAvailableCommands(*packet.AvailableCommands)
 }
