@@ -7,6 +7,7 @@ import (
 
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 type PlayerData struct {
@@ -21,6 +22,8 @@ type PlayerData struct {
 	FakeChestOpen     bool
 	FakeChestPos      protocol.BlockPos
 	Windows           byte
+	// Commands that were sent by BDS and are available to the player.
+	BDSAvailableCommands packet.AvailableCommands
 }
 
 func (pd *PlayerData) SetClosed() {
