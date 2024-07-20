@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
+	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -13,24 +14,31 @@ type AvailableCommandsHandler struct {
 type CommandRequestHandler struct {
 }
 
+// RemoveCommands removes a list of specified commands from the list of available commands.
+func RemoveCommands(commands []protocol.Command, remove []string) []protocol.Command {
+	removeMap := make(map[string]bool)
+	for _, cmd := range remove {
+		removeMap[cmd] = true
+	}
+
+	filteredCommands := make([]protocol.Command, 0, len(commands))
+	for _, command := range commands {
+		if !removeMap[command.Name] {
+			filteredCommands = append(filteredCommands, command)
+		}
+	}
+
+	return filteredCommands
+}
+
 func (AvailableCommandsHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.AvailableCommands)
 
-	// Remove `/me`
-	for i, command := range dataPacket.Commands {
-		if command.Name == "me" {
-			dataPacket.Commands = append(dataPacket.Commands[:i], dataPacket.Commands[i+1:]...)
-			break
-		}
-	}
+	// Define an array of command names to remove
+	commandsToRemove := []string{"me", "tell"}
+	dataPacket.Commands = RemoveCommands(dataPacket.Commands, commandsToRemove)
 
-	// Remove `/tell`, `/w`, and `/msg`
-	for i, command := range dataPacket.Commands {
-		if command.Name == "tell" {
-			dataPacket.Commands = append(dataPacket.Commands[:i], dataPacket.Commands[i+1:]...)
-			break
-		}
-	}
+	player.SetBDSAvailableCommands(dataPacket)
 
 	return true, dataPacket, nil
 }
@@ -47,6 +55,14 @@ func (CommandRequestHandler) Handle(pk packet.Packet, player human.Human) (bool,
 		return false, pk, nil
 	}
 
+	minecraftCommands := player.GetData().BDSAvailableCommands.Commands
+	// Check if {command} is a name inside {minecraftCommands}
+	for _, cmd := range minecraftCommands {
+		if cmd.Name == command {
+			return true, pk, nil
+		}
+	}
+
 	// Command should be a custom `-` command
 	textPk := &packet.Text{
 		TextType:         packet.TextTypeChat,
@@ -59,5 +75,5 @@ func (CommandRequestHandler) Handle(pk packet.Packet, player human.Human) (bool,
 	}
 	player.DataPacketToServer(textPk)
 
-	return true, dataPacket, nil
+	return false, dataPacket, nil
 }
