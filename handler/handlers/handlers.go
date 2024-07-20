@@ -51,7 +51,6 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 		handlers[packet.IDSubChunkRequest] = []handler.PacketHandler{SubChunkRequestHandler{}}
 		handlers[packet.IDSubChunk] = append(handlers[packet.IDSubChunk], SubChunkHandlerBoarder{})
 		handlers[packet.IDLevelChunk] = []handler.PacketHandler{LevelChunkHandler{}}
-		handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandlerBoarder{}}
 		handlers[packet.IDInventoryTransaction] = []handler.PacketHandler{InventoryTransactionHandler{}}
 	}
 
@@ -60,9 +59,6 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 
 	handlers[packet.IDChunkRadiusUpdated] = []handler.PacketHandler{UpdateRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
 	handlers[packet.IDRequestChunkRadius] = []handler.PacketHandler{RequestRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
-
-	handlers[packet.IDContainerClose] = []handler.PacketHandler{CloseInventoryHandler{}}
-	handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandler{}}
 
 	// handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
 	// handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
