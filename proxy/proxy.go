@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -13,15 +12,13 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/math"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/block"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/console"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/console/bash"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/console/bots"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/whitelist"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/world"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
+	"github.com/google/uuid"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/resource"
@@ -34,22 +31,17 @@ var ProxyInstance *Proxy
 type Proxy struct {
 	Worlds           *world.Worlds
 	Config           utils.Config
-	PlayerManager    human.HumanManager
 	Handlers         handler.HandlerManager
 	CommandManager   *command.CommandManager
 	Listener         *minecraft.Listener
-	CommandSender    console.CommandSender
 	WhitelistManager *whitelist.WhitelistManager
 }
 
-func New(config utils.Config, hm human.HumanManager) *Proxy {
-	block.Init()
-
+func New(config utils.Config) *Proxy {
 	commandManager := command.InitManager(config.Server.Ops)
 
 	Proxy := &Proxy{
 		Config:         config,
-		PlayerManager:  hm,
 		CommandManager: commandManager,
 	}
 
@@ -61,34 +53,12 @@ func New(config utils.Config, hm human.HumanManager) *Proxy {
 		Proxy.WhitelistManager = whitelist.Init(commandManager)
 	}
 
-	os := runtime.GOOS
-	switch os {
-	case "windows":
-		if Proxy.Config.Bot.Enabled {
-			log.Logger.Debugln("Creating new console bot instance..")
-			Proxy.CommandSender = bots.NewBot(Proxy.Config)
-		} else {
-			log.Logger.Warnln("Console bot is disabled in config")
-		}
-	case "linux":
-		log.Logger.Debugln("Creating new bash console instance..")
-		Proxy.CommandSender = bash.NewBash(strings.Split(Proxy.Config.Connection.RemoteAddress, ":")[1])
-	}
-
-	if Proxy.CommandSender == nil {
-		log.Logger.Warnln("CommandSender is not declared, functionality will be disabled")
-	}
-
 	return Proxy
 }
 
 // The following program implements a proxy that forwards players from one local address to a remote address.
 func (arg *Proxy) Start(h handler.HandlerManager) error {
 	arg.Handlers = h
-
-	if arg.Config.Rcon.Enabled {
-		go command.InitRCON(arg.CommandManager.Commands, arg.Config.Rcon.Port, arg.Config.Rcon.Password)
-	}
 
 	p, err := minecraft.NewForeignStatusProvider(arg.Config.Connection.RemoteAddress)
 	if err != nil {
@@ -118,45 +88,34 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	log.Logger.Debugln("Original server address:", arg.Config.Connection.RemoteAddress, "public address:", arg.Config.Connection.ProxyAddress)
 	log.Logger.Println("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
 
-	defer arg.Stop()
+	defer arg.Listener.Close()
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
 			log.Logger.Errorln(err)
 			continue
 		}
+		log.Logger.Debugln("New connection from", c.(*minecraft.Conn).RemoteAddr())
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
 }
 
-// Stop stops the proxy and closes all connections.
-func (arg *Proxy) Stop() {
-	arg.CommandSender.Close()
-	arg.PlayerManager.DeleteAll()
-	arg.Listener.Close()
-}
-
 // handleConn handles a new incoming minecraft.Conn from the minecraft.Listener passed.
 func (arg *Proxy) handleConn(conn *minecraft.Conn) {
-	if human, ok := arg.PlayerManager.PlayerList()[conn.IdentityData().DisplayName]; ok { // if the user is already in the system
-		err := conn.Close()
-		if err != nil {
-			log.Logger.Errorln(err)
+	if arg.Config.Server.Whitelist {
+		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
+			arg.Listener.Disconnect(conn, "You are not whitelisted on this server!")
+			return
 		}
-
-		err = arg.Listener.Disconnect(conn, "connection lost")
-		if err != nil {
-			log.Logger.Errorln(err)
-		}
-
-		arg.deletePlayer(human)
-		return
 	}
 
 	serverConn, err := minecraft.Dialer{
 		KeepXBLIdentityData: true,
 		ClientData:          conn.ClientData(),
 		IdentityData:        conn.IdentityData(),
+		DownloadResourcePack: func(id uuid.UUID, version string, current int, total int) bool {
+			return false
+		},
 	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*120)
 
 	if err != nil {
@@ -164,6 +123,8 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		arg.Listener.Disconnect(conn, err.Error())
 		return
 	}
+
+	log.Logger.Debugln("Server connection established for", serverConn.IdentityData().DisplayName)
 
 	var success = true
 	var g sync.WaitGroup
@@ -185,21 +146,15 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	g.Wait()
 
 	if !success {
-		arg.CloseConnections(conn, serverConn, "Failed to establish a connection, please try again!")
+		arg.Listener.Disconnect(conn, "Failed to establish a connection, please try again!")
+		serverConn.Close()
 		return
 	}
 
-	if arg.Config.Server.Whitelist {
-		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
-			arg.CloseConnections(conn, serverConn, "You are not whitelisted on this server!")
-			return
-		}
-	}
-
-	pl := arg.PlayerManager.AddPlayer(conn, serverConn)
-	log.Logger.Infoln(pl.GetName(), "joined the server")
-	pl.SendXUIDToAddon()
-	arg.UpdatePlayerDetails(pl)
+	player := player.GetPlayer(conn, serverConn)
+	log.Logger.Infoln(player.GetName(), "joined the server")
+	player.SendXUIDToAddon()
+	arg.UpdatePlayerDetails(player)
 
 	go func() { // client->proxy
 		defer arg.Listener.Disconnect(conn, "connection lost")
@@ -207,10 +162,10 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
-				break
+				return
 			}
 
-			ok, pk, err := arg.Handlers.HandlePacket(pk, pl, "Client")
+			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
 			if err != nil {
 				log.Logger.Errorln(err)
 			}
@@ -221,11 +176,10 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 					if ok := errors.As(err, &disc); ok {
 						_ = arg.Listener.Disconnect(conn, disc.Error())
 					}
-					break
+					return
 				}
 			}
 		}
-		arg.deletePlayer(pl)
 	}()
 	go func() { // proxy->server
 		defer serverConn.Close()
@@ -237,48 +191,21 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 				if ok := errors.As(err, &disc); ok {
 					_ = arg.Listener.Disconnect(conn, disc.Error())
 				}
-				break
+				return
 			}
 
-			ok, pk, err := arg.Handlers.HandlePacket(pk, pl, "Server")
+			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Server")
 			if err != nil {
 				log.Logger.Errorln(err)
 			}
 
 			if ok {
 				if err := conn.WritePacket(pk); err != nil {
-					break
+					return
 				}
 			}
 		}
-		arg.deletePlayer(pl)
 	}()
-}
-
-func (arg *Proxy) deletePlayer(human human.Human) {
-	arg.PlayerManager.DeletePlayer(human)
-	arg.Listener.Disconnect(human.GetSession().Connection.ClientConn, "connection lost")
-}
-
-func (arg *Proxy) SendConsoleCommand(cmd string) {
-	if arg.CommandSender == nil {
-		log.Logger.Warnln("CommandSender is not declared. Ignored:", cmd)
-	} else {
-		if err := arg.CommandSender.SendCommand(cmd); err != nil {
-			log.Logger.Errorln("CommandSender:", err)
-		}
-	}
-}
-
-func (arg *Proxy) CloseConnections(conn *minecraft.Conn, serverConn *minecraft.Conn, reason string) {
-	err := serverConn.Close()
-	if err != nil {
-		log.Logger.Errorln(err)
-	}
-	err = arg.Listener.Disconnect(conn, reason)
-	if err != nil {
-		log.Logger.Errorln(err)
-	}
 }
 
 type PlayerDetails struct {
