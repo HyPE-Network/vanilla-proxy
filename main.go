@@ -6,7 +6,6 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/handler/handlers"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/manager"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -17,7 +16,7 @@ func main() {
 
 	config := utils.ReadConfig()
 
-	proxy.ProxyInstance = proxy.New(config, manager.NewPlayerManager())
+	proxy.ProxyInstance = proxy.New(config)
 
 	err := proxy.ProxyInstance.Start(loadHandlers())
 	if err != nil {
