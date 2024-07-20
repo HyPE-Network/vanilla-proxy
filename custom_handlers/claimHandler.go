@@ -1,7 +1,8 @@
 package custom_handlers
 
 import (
-	"github.com/HyPE-Network/vanilla-proxy/proxy/block/cube"
+	"log"
+
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 	"github.com/sandertv/gophertunnel/minecraft"
@@ -36,11 +37,7 @@ func FetchClaims() error {
 	}
 
 	RegisteredClaims = claims
-
-	// Log the claims for debugging purposes
-	// for key, claim := range claims {
-	// 	log.Logger.Infof("Claim ID: %s, Player XUID: %s, Location: %+v\n", key, claim.PlayerXUID, claim.Location)
-	// }
+	log.Printf("Loaded %d claims from the database\n", len(RegisteredClaims))
 
 	return nil
 }
@@ -178,9 +175,7 @@ func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Hu
 	switch td := dataPacket.TransactionData.(type) {
 	case *protocol.UseItemTransactionData:
 		if td.ActionType == protocol.UseItemActionClickBlock {
-			pos := cube.Side(td.BlockPosition, td.BlockFace)
-
-			claim := getClaimAt(player.GetData().GameData.Dimension, pos.X(), pos.Z())
+			claim := getClaimAt(player.GetData().GameData.Dimension, td.BlockPosition.X(), td.BlockPosition.Z())
 			if claim.ClaimId == "" {
 				return true, pk, nil
 			}
