@@ -9,6 +9,8 @@ type Worlds struct {
 }
 
 func Init(border *math.Area2) *Worlds {
+	InitBlocks()
+
 	return &Worlds{
 		Border: *border,
 	}
