@@ -4,12 +4,12 @@ import (
 	"math"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/block"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/world"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/go-gl/mathgl/mgl32"
@@ -24,18 +24,27 @@ type Player struct {
 	PlayerData *data.PlayerData
 }
 
-func NewPlayer(name string, session *session.Session, gameData minecraft.GameData) *Player {
+// Creates a new player instance from a server conn
+func NewPlayer(conn *minecraft.Conn, session *session.Session) *Player {
 	return &Player{
-		Name:    name,
+		Name:    conn.IdentityData().DisplayName,
 		Session: session,
 		PlayerData: &data.PlayerData{
-			GameData:         gameData,
+			GameData:         conn.GameData(),
 			Forms:            make(map[uint32]form.Form),
 			BrokenBlocks:     make(map[protocol.BlockPos]uint32),
 			StartSessionTime: utils.GetTimestamp(),
 			Authorized:       false,
 		},
 	}
+}
+
+// Gets a player from a connection
+func GetPlayer(conn *minecraft.Conn, serverConn *minecraft.Conn) human.Human {
+	ab := session.NewBridge(conn, serverConn)
+	newSession := session.NewSession(conn, ab)
+	var pl human.Human = NewPlayer(conn, newSession)
+	return pl
 }
 
 func (player *Player) GetName() string {
@@ -169,7 +178,7 @@ func (player *Player) DistanceXYZSquared(x float32, y float32, z float32) float6
 }
 
 func (player *Player) SendAirUpdate(pos protocol.BlockPos) {
-	player.SendUpdateBlock(pos, block.AirRID)
+	player.SendUpdateBlock(pos, world.AirRID)
 }
 
 func (player *Player) SendUpdateBlock(pos protocol.BlockPos, rid uint32) {
@@ -241,44 +250,6 @@ func (player *Player) DataPacketToServer(pk packet.Packet) {
 	}
 }
 
-func (player *Player) SendInventory(inv inventory.Inventory) {
-	updateBlock := &packet.UpdateBlock{
-		Position:          protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())},
-		NewBlockRuntimeID: block.GetRuntime(block.Chest),
-		Flags:             0,
-		Layer:             0,
-	}
-
-	if err := player.Session.Connection.ClientConn.WritePacket(updateBlock); err != nil {
-		log.Logger.Errorln(err)
-	}
-
-	inventoryId := player.PlayerData.GetNextWindowId()
-
-	openInventory := &packet.ContainerOpen{
-		WindowID:                inventoryId,
-		ContainerType:           0,
-		ContainerPosition:       protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())},
-		ContainerEntityUniqueID: -1,
-	}
-
-	if err := player.Session.Connection.ClientConn.WritePacket(openInventory); err != nil {
-		log.Logger.Errorln(err)
-	}
-
-	player.PlayerData.FakeChestOpen = true
-	player.PlayerData.FakeChestPos = protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())}
-
-	inventoryContent := &packet.InventoryContent{
-		WindowID: uint32(inventoryId),
-		Content:  inv.GetContent(),
-	}
-
-	if err := player.Session.Connection.ClientConn.WritePacket(inventoryContent); err != nil {
-		log.Logger.Errorln(err)
-	}
-}
-
 func (player *Player) PlaySound(soundName string, pos mgl32.Vec3, volume float32, pitch float32) {
 	pk := &packet.PlaySound{
 		SoundName: soundName,
@@ -326,4 +297,9 @@ func (player *Player) CommandPermissions() byte {
 	} else {
 		return packet.CommandPermissionLevelNormal
 	}
+}
+
+// SetBDSAvailableCommands sets the AvailableCommands packet that is sent to the player when they join the server.
+func (player *Player) SetBDSAvailableCommands(pk *packet.AvailableCommands) {
+	player.PlayerData.BDSAvailableCommands = *pk
 }
