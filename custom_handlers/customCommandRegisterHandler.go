@@ -140,14 +140,14 @@ func formatAvailableCommands(commands map[string]IEngineResponseCommand, player 
 				}
 			}
 			overloads[i].Parameters = append(overloads[i].Parameters, protocol.CommandParameter{
-				Name:     param.Name,
+				Name:     strings.ToLower(param.Name),
 				Type:     t,
 				Optional: false,
 				Options:  opt,
 			})
 		}
 		pk.Commands = append(pk.Commands, protocol.Command{
-			Name:          c.Name,
+			Name:          strings.ToLower(c.Name),
 			Description:   c.Description,
 			AliasesOffset: aliasesIndex,
 			Overloads:     overloads,
