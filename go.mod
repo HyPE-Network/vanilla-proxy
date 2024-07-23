@@ -7,16 +7,16 @@ toolchain go1.22.4
 require (
 	github.com/df-mc/atomic v1.10.0
 	github.com/go-gl/mathgl v1.1.0
+	github.com/google/uuid v1.6.0
 	github.com/pelletier/go-toml v1.9.5
-	github.com/sandertv/gophertunnel v1.39.1-0.20240711154442-7483781fd047
+	github.com/sandertv/gophertunnel v1.39.1
 	github.com/sirupsen/logrus v1.9.3
-	golang.org/x/exp v0.0.0-20240707233637-46b078467d37
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
 
 require (
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0 // indirect
 	github.com/sandertv/go-raknet v1.14.1 // indirect

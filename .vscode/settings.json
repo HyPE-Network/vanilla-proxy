@@ -3,6 +3,7 @@
         "Debugln",
         "Errorln",
         "Infoln",
+        "pokeb",
         "raknet",
         "XUID"
     ]
