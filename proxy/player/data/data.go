@@ -24,6 +24,8 @@ type PlayerData struct {
 	Windows           byte
 	// Commands that were sent by BDS and are available to the player.
 	BDSAvailableCommands packet.AvailableCommands
+	// ItemComponentEntries holds a list of all custom items with their respective components set.
+	ItemComponentEntries []protocol.ItemComponentEntry
 }
 
 func (pd *PlayerData) SetClosed() {

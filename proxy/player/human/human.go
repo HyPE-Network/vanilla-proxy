@@ -57,4 +57,11 @@ type Human interface {
 	CommandPermissions() byte
 
 	SetBDSAvailableCommands(*packet.AvailableCommands)
+
+	GetItemEntry(networkID int32) *protocol.ItemEntry
+	GetItemComponentEntry(name string) *protocol.ItemComponentEntry
+	GetItemComponentEntries() []protocol.ItemComponentEntry
+	AddItemComponentEntry(entry *protocol.ItemComponentEntry)
+	RemoveItemComponentEntry(entry *protocol.ItemComponentEntry)
+	SetItemComponentEntries([]protocol.ItemComponentEntry)
 }
