@@ -70,7 +70,10 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 
 	// Loop through all the pack URLs and append each pack to the slice
 	for _, url := range arg.Config.Resources.PackURLs {
-		resourcePack := resource.MustReadURL(url)
+		resourcePack, err := resource.ReadURL(url)
+		if err != nil {
+			return err
+		}
 		resourcePacks = append(resourcePacks, resourcePack)
 	}
 
