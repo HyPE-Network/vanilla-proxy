@@ -96,8 +96,13 @@ func canPreformActionInClaim(player human.Human, claim IPlayerClaim, action stri
 	// 	return true
 	// }
 
-	if action == "interact" && claim.PlayerXUID == "*" {
-		// Players can interact in admin claims
+	if action == "interactWithBlock" && claim.PlayerXUID == "*" {
+		// Players can interact with blocks in admin claims
+		return true
+	}
+
+	if action == "interactWithEntity" && claim.PlayerXUID == "*" {
+		// Players can interact with entities in admin claims
 		return true
 	}
 
@@ -128,26 +133,18 @@ func (ClaimPlayerAuthInputHandler) Handle(pk packet.Packet, player human.Human) 
 
 	// Something is being placed or broken, check if it is in a claim
 
-	for i, ba := range dataPacket.BlockActions {
+	for _, ba := range dataPacket.BlockActions {
+		log.Println(`Player break block`)
 		if ba.Action == protocol.PlayerActionCrackBreak { // continue break
 			continue
 		}
 
-		bPos := ba.BlockPos
-		if ba.Action == protocol.PlayerActionStopBreak && (i == 0 || i == 1) && len(dataPacket.BlockActions) > 1 { // break block action contains [0 0 0] position
-			if i == 0 {
-				bPos = dataPacket.BlockActions[i+1].BlockPos
-			} else {
-				bPos = dataPacket.BlockActions[i-1].BlockPos
-			}
-		}
-
-		claim := getClaimAt(player.GetData().GameData.Dimension, bPos.X(), bPos.Z())
+		claim := getClaimAt(player.GetData().GameData.Dimension, ba.BlockPos.X(), ba.BlockPos.Z())
 		if claim.ClaimId == "" {
 			continue
 		}
 
-		if canPreformActionInClaim(player, claim, "break") {
+		if canPreformActionInClaim(player, claim, "breakBlock") {
 			// Player is allowed to do action here
 			continue
 		}
@@ -174,19 +171,41 @@ func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Hu
 
 	switch td := dataPacket.TransactionData.(type) {
 	case *protocol.UseItemTransactionData:
-		if td.ActionType == protocol.UseItemActionClickBlock {
-			claim := getClaimAt(player.GetData().GameData.Dimension, td.BlockPosition.X(), td.BlockPosition.Z())
-			if claim.ClaimId == "" {
-				return true, pk, nil
-			}
+		// Can stop players from using items like GUI, Pokedex, Potions, etc
+		// So use this to stop players from throwing projectiles
+		// This cannot stop interactions with entities or blocks.
 
-			if canPreformActionInClaim(player, claim, "interact") {
-				return true, pk, nil
-			}
+		if td.HeldItem.Stack.ItemType.NetworkID == 0 {
+			// Using hand
+			return true, pk, nil
+		}
 
-			player.SendMessage("§cYou cannot perform actions in this claim!")
-			player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
-			return false, pk, nil
+		claim := getClaimAt(player.GetData().GameData.Dimension, int32(td.Position.X()), int32(td.Position.Z()))
+		if claim.ClaimId == "" {
+			return true, pk, nil
+		}
+		if canPreformActionInClaim(player, claim, "useItem") {
+			return true, pk, nil
+		}
+
+		item := player.GetItemEntry(td.HeldItem.Stack.ItemType.NetworkID)
+		if item == nil {
+			// Item not sent over, most likely a minecraft item
+			return true, pk, nil
+		}
+		itemComponents := player.GetItemComponentEntry(item.Name)
+		if itemComponents == nil {
+			// Item does not have any components, most-likely a minecraft item
+			return true, pk, nil
+		}
+
+		if components, ok := itemComponents.Data["components"].(map[string]any); ok {
+			if _, ok := components["minecraft:throwable"]; ok {
+				// Item is throwable, stop the player from using it
+				player.SendMessage("§cYou cannot use throwable items in this claim!")
+				player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
+				return false, pk, nil
+			}
 		}
 	}
 
