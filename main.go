@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/HyPE-Network/vanilla-proxy/custom_handlers"
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/handler/handlers"
@@ -26,10 +28,11 @@ func main() {
 }
 
 func loadHandlers() handler.HandlerManager {
-	custom_handlers.FetchClaims()
+	utils.NewRepeatingTask(int64(time.Second*60), func() {
+		custom_handlers.FetchClaims()
+	})
 
 	h := handlers.New()
-	h.RegisterHandler(packet.IDInventoryTransaction, custom_handlers.PlaceBlockHandler{})
 	h.RegisterHandler(packet.IDAvailableCommands, custom_handlers.AvailableCommandsHandler{})
 	h.RegisterHandler(packet.IDCommandRequest, custom_handlers.CommandRequestHandler{})
 	h.RegisterHandler(packet.IDBlockActorData, custom_handlers.SignEditHandler{})
@@ -37,6 +40,7 @@ func loadHandlers() handler.HandlerManager {
 	h.RegisterHandler(packet.IDInventoryTransaction, custom_handlers.ClaimInventoryTransactionHandler{})
 	h.RegisterHandler(packet.IDText, custom_handlers.CustomCommandRegisterHandler{})
 	h.RegisterHandler(packet.IDDisconnect, custom_handlers.DisconnectHandler{})
+	h.RegisterHandler(packet.IDItemComponent, custom_handlers.ItemComponentHandler{})
 
 	return h
 }
