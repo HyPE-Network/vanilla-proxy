@@ -228,7 +228,7 @@ func (arg *Proxy) UpdatePlayerDetails(player human.Human) {
 	playerDetails := PlayerDetails{
 		Xuid: xuid,
 		Name: player.GetName(),
-		IP:   strings.Split(player.GetSession().ClientData.ServerAddress, ":")[0],
+		IP:   strings.Split(player.GetSession().Connection.ClientConn.RemoteAddr().String(), ":")[0],
 	}
 
 	// Convert player details to JSON
