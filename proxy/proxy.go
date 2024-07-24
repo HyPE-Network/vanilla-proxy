@@ -96,7 +96,9 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		c, err := arg.Listener.Accept()
 		if err != nil {
 			log.Logger.Errorln(err)
-			continue
+			c.Close()
+			arg.Start(h)
+			return nil // Should return error, but we want to restart listener
 		}
 		log.Logger.Debugln("New connection from", c.(*minecraft.Conn).RemoteAddr())
 		go arg.handleConn(c.(*minecraft.Conn))
