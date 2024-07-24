@@ -36,7 +36,6 @@ func loadHandlers() handler.HandlerManager {
 	h.RegisterHandler(packet.IDAvailableCommands, custom_handlers.AvailableCommandsHandler{})
 	h.RegisterHandler(packet.IDCommandRequest, custom_handlers.CommandRequestHandler{})
 	h.RegisterHandler(packet.IDBlockActorData, custom_handlers.SignEditHandler{})
-	h.RegisterHandler(packet.IDPlayerAuthInput, custom_handlers.ClaimPlayerAuthInputHandler{})
 	h.RegisterHandler(packet.IDInventoryTransaction, custom_handlers.ClaimInventoryTransactionHandler{})
 	h.RegisterHandler(packet.IDText, custom_handlers.CustomCommandRegisterHandler{})
 	h.RegisterHandler(packet.IDDisconnect, custom_handlers.DisconnectHandler{})

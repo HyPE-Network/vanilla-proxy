@@ -115,49 +115,6 @@ func canPreformActionInClaim(player human.Human, claim IPlayerClaim, action stri
 	return false
 }
 
-type ClaimPlayerAuthInputHandler struct {
-}
-
-func (ClaimPlayerAuthInputHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
-	if player.IsOP() {
-		return true, pk, nil
-	}
-	dataPacket := pk.(*packet.PlayerAuthInput)
-	playerData := player.GetData().GameData
-
-	// Handles Player movement and breaking of blocks.
-
-	if len(dataPacket.BlockActions) == 0 {
-		return true, pk, nil
-	}
-
-	// Something is being placed or broken, check if it is in a claim
-
-	for _, ba := range dataPacket.BlockActions {
-		log.Println(`Player break block`)
-		if ba.Action == protocol.PlayerActionCrackBreak { // continue break
-			continue
-		}
-
-		claim := getClaimAt(player.GetData().GameData.Dimension, ba.BlockPos.X(), ba.BlockPos.Z())
-		if claim.ClaimId == "" {
-			continue
-		}
-
-		if canPreformActionInClaim(player, claim, "breakBlock") {
-			// Player is allowed to do action here
-			continue
-		}
-
-		// Player does not own the claim or is not trusted, cancel the action
-		player.SendMessage("§cYou cannot perform actions in this claim!")
-		player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
-		return false, pk, nil
-	}
-
-	return true, pk, nil
-}
-
 type ClaimInventoryTransactionHandler struct {
 }
 
