@@ -155,10 +155,36 @@ func LogErrorToDiscord(err error) {
 		return
 	}
 	defer resp.Body.Close()
+}
 
-	if resp.StatusCode != http.StatusOK {
-		log.Println("Failed to send logs to discord, status code:", resp.StatusCode)
+func SendStaffAlertToDiscord(title string, description string, color int, fields []map[string]interface{}) {
+	config := ReadConfig()
+	params := map[string]interface{}{
+		"username":   fmt.Sprintf("[%s] %s", config.Server.Prefix, title),
+		"avatar_url": config.Logging.DiscordSignLogsIconURL,
+		"content":    "@everyone",
+		"embeds": []map[string]interface{}{
+			{
+				"title":       title,
+				"description": description,
+				"color":       color,
+				"timestamp":   time.Now().Format(time.RFC3339),
+				"fields":      fields,
+			},
+		},
 	}
+
+	jsonParams, _ := json.Marshal(params)
+	req, _ := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Failed to send logs to discord", err)
+		return
+	}
+	defer resp.Body.Close()
 }
 
 func StringInSlice(a string, list []string) bool {
