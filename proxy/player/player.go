@@ -353,3 +353,57 @@ func (player *Player) RemoveItemComponentEntry(entry *protocol.ItemComponentEntr
 func (player *Player) SetItemComponentEntries(entries []protocol.ItemComponentEntry) {
 	player.PlayerData.ItemComponentEntries = entries
 }
+
+// SetOpenContainerWindowID sets the ID of the window that is currently open for the player.
+func (player *Player) SetOpenContainerWindowID(windowId byte) {
+	player.PlayerData.OpenContainerWindowId = windowId
+}
+
+func (player *Player) SetOpenContainerType(containerType byte) {
+	player.PlayerData.OpenContainerType = containerType
+}
+
+// SetLastItemStackRequestID sets the last item stack request ID that was sent by the player.
+func (player *Player) SetLastItemStackRequestID(id int32) {
+	player.PlayerData.LastItemStackRequestID = id
+}
+
+// GetNextItemStackRequestID returns the next item stack request ID that can be used by the player.
+func (player *Player) GetNextItemStackRequestID() int32 {
+	if player.PlayerData.LastItemStackRequestID == math.MaxInt32 {
+		player.PlayerData.LastItemStackRequestID = 0
+	}
+	player.PlayerData.LastItemStackRequestID -= 2
+	return player.PlayerData.LastItemStackRequestID
+}
+
+// SetItemToContainerSlot sets the amount of items that are in the container slot that the player has put in.
+func (player *Player) SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo) {
+	// Find if the slot is already in this list, if so update, else append
+	for i, slot := range player.PlayerData.ItemsInContainers {
+		if slot.ContainerID == slotInfo.ContainerID && slot.Slot == slotInfo.Slot {
+			player.PlayerData.ItemsInContainers[i] = slotInfo
+			return
+		}
+	}
+	player.PlayerData.ItemsInContainers = append(player.PlayerData.ItemsInContainers, slotInfo)
+}
+
+// GetItemsInContainerSlot returns the amount of items that are in the container slot that the player has put in.
+func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo {
+	for _, slotInfo := range player.PlayerData.ItemsInContainers {
+		if slotInfo.ContainerID == containerID && slotInfo.Slot == slot {
+			return slotInfo
+		}
+	}
+	return protocol.StackRequestSlotInfo{
+		ContainerID:    containerID,
+		Slot:           slot,
+		StackNetworkID: 0, // Empty
+	}
+}
+
+// GetCursorItem returns the item that is currently in the cursor of the player.
+func (player *Player) GetCursorItem() protocol.StackRequestSlotInfo {
+	return player.GetItemFromContainerSlot(protocol.ContainerCursor, 0)
+}

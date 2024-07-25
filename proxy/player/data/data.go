@@ -2,6 +2,7 @@ package data
 
 import (
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
+	"github.com/go-gl/mathgl/mgl32"
 
 	"github.com/df-mc/atomic"
 
@@ -26,6 +27,14 @@ type PlayerData struct {
 	BDSAvailableCommands packet.AvailableCommands
 	// ItemComponentEntries holds a list of all custom items with their respective components set.
 	ItemComponentEntries []protocol.ItemComponentEntry
+	// OpenContainerWindowId is the ID of the window that is currently open for the player.
+	OpenContainerWindowId byte
+	// OpenContainerType is the type of container that is currently open for the player.
+	OpenContainerType byte
+	// LastItemStackRequestID is the last ID of an item stack request that was sent by the player.
+	LastItemStackRequestID int32
+	// ItemsInContainers holds a list of all items that are currently in containers the player has put in.
+	ItemsInContainers []protocol.StackRequestSlotInfo
 	// LastUpdatedLocation is the last location that was updated for the player (updated by auth-input).
 	LastUpdatedLocation mgl32.Vec3
 }

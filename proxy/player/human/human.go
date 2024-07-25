@@ -66,4 +66,12 @@ type Human interface {
 	AddItemComponentEntry(entry *protocol.ItemComponentEntry)
 	RemoveItemComponentEntry(entry *protocol.ItemComponentEntry)
 	SetItemComponentEntries([]protocol.ItemComponentEntry)
+
+	SetOpenContainerWindowID(windowId byte)
+	SetOpenContainerType(containerType byte)
+	SetLastItemStackRequestID(id int32)
+	GetNextItemStackRequestID() int32
+	SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo)
+	GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo
+	GetCursorItem() protocol.StackRequestSlotInfo
 }
