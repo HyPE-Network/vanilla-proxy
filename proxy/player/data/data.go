@@ -26,6 +26,8 @@ type PlayerData struct {
 	BDSAvailableCommands packet.AvailableCommands
 	// ItemComponentEntries holds a list of all custom items with their respective components set.
 	ItemComponentEntries []protocol.ItemComponentEntry
+	// LastUpdatedLocation is the last location that was updated for the player (updated by auth-input).
+	LastUpdatedLocation mgl32.Vec3
 }
 
 func (pd *PlayerData) SetClosed() {

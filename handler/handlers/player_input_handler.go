@@ -15,6 +15,8 @@ func (PlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, pa
 	dataPacket := pk.(*packet.PlayerAuthInput)
 	playerData := player.GetData().GameData
 
+	player.SetPlayerLocation(dataPacket.Position)
+
 	// Verify new position
 	if proxy.ProxyInstance.Worlds != nil && !proxy.ProxyInstance.Worlds.Border.IsXZInside(int32(dataPacket.Position.X()), int32(dataPacket.Position.Z())) {
 		player.SendMessage("§cYou cannot move outside the world!")

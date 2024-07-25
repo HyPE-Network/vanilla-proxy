@@ -43,6 +43,8 @@ type Human interface {
 	GetDimension() int32
 	GetWorldName() string
 
+	SetPlayerLocation(mgl32.Vec3)
+
 	GetPing() int64
 	GetSessionTime() int64
 

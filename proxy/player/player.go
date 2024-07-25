@@ -193,6 +193,10 @@ func (player *Player) SendUpdateBlock(pos protocol.BlockPos, rid uint32) {
 	player.DataPacket(pk)
 }
 
+func (player *Player) SetPlayerLocation(pos mgl32.Vec3) {
+	player.PlayerData.LastUpdatedLocation = pos
+}
+
 func (player *Player) InOverworld() bool {
 	return player.PlayerData.GameData.Dimension == packet.DimensionOverworld
 }
