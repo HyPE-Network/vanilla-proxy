@@ -115,15 +115,26 @@ func canPreformActionInClaim(player human.Human, claim IPlayerClaim, action stri
 	return false
 }
 
+// type ClaimAuthPlayerInputHandler struct{}
+
+// func (ClaimAuthPlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+// 	dataPacket := pk.(*packet.PlayerAuthInput)
+
+// 	// If a player is trying to attack something, verify the claim
+
+// 	return true, pk, nil
+// }
+
 type ClaimInventoryTransactionHandler struct {
 }
 
 func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+	dataPacket := pk.(*packet.InventoryTransaction)
+
 	if player.IsOP() {
 		return true, pk, nil
 	}
 
-	dataPacket := pk.(*packet.InventoryTransaction)
 	playerData := player.GetData().GameData
 
 	switch td := dataPacket.TransactionData.(type) {
