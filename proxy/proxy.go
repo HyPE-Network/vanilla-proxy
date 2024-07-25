@@ -70,13 +70,13 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	var resourcePacks []*resource.Pack
 
 	// Loop through all the pack URLs and append each pack to the slice
-	// for _, url := range arg.Config.Resources.PackURLs {
-	// 	resourcePack, err := resource.ReadURL(url)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	resourcePacks = append(resourcePacks, resourcePack)
-	// }
+	for _, url := range arg.Config.Resources.PackURLs {
+		resourcePack, err := resource.ReadURL(url)
+		if err != nil {
+			return err
+		}
+		resourcePacks = append(resourcePacks, resourcePack)
+	}
 
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
 		AuthenticationDisabled: arg.Config.Server.DisableXboxAuth,

@@ -1,8 +1,6 @@
 package custom_handlers
 
 import (
-	"strconv"
-
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
@@ -13,18 +11,18 @@ type InventoryContentHandler struct{}
 func (InventoryContentHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.InventoryContent)
 
-	// Map the dataPacket.Content to a slice of strings
-	var content []string
-	for i, item := range dataPacket.Content {
-		itemEntry := player.GetItemEntry(item.Stack.ItemType.NetworkID)
-		if itemEntry == nil {
-			content = append(content, "empty")
-			continue
-		}
-		content = append(content, `Slot: `+strconv.Itoa(i)+`=>`+itemEntry.Name)
-	}
+	// // Map the dataPacket.Content to a slice of strings
+	// var content []string
+	// for i, item := range dataPacket.Content {
+	// 	itemEntry := player.GetItemEntry(item.Stack.ItemType.NetworkID)
+	// 	if itemEntry == nil {
+	// 		content = append(content, "empty")
+	// 		continue
+	// 	}
+	// 	content = append(content, `Slot: `+strconv.Itoa(i)+`=>`+itemEntry.Name)
+	// }
 
-	//log.Println(player.GetName(), "'s Inventory content:", dataPacket.WindowID, " has been set too:", content)
+	// //log.Println(player.GetName(), "'s Inventory content:", dataPacket.WindowID, " has been set too:", content)
 
 	return true, dataPacket, nil
 }
@@ -34,13 +32,13 @@ type InventorySlotHandler struct{}
 func (InventorySlotHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.InventorySlot)
 
-	itemEntry := player.GetItemEntry(dataPacket.NewItem.Stack.ItemType.NetworkID)
-	if itemEntry == nil {
-		//log.Println("Inventory slot:", dataPacket.Slot, " has been updated to empty")
-		return true, dataPacket, nil
-	} else {
-		//log.Println("Inventory slot", dataPacket.Slot, " has been updated to", itemEntry.Name)
-	}
+	// itemEntry := player.GetItemEntry(dataPacket.NewItem.Stack.ItemType.NetworkID)
+	// if itemEntry == nil {
+	// 	//log.Println("Inventory slot:", dataPacket.Slot, " has been updated to empty")
+	// 	return true, dataPacket, nil
+	// } else {
+	// 	//log.Println("Inventory slot", dataPacket.Slot, " has been updated to", itemEntry.Name)
+	// }
 
 	return true, dataPacket, nil
 }
