@@ -160,7 +160,7 @@ func LogErrorToDiscord(err error) {
 func SendStaffAlertToDiscord(title string, description string, color int, fields []map[string]interface{}) {
 	config := ReadConfig()
 	params := map[string]interface{}{
-		"username":   fmt.Sprintf("[%s] %s", config.Server.Prefix, title),
+		"username":   fmt.Sprintf("[%s] Staff Alert", config.Server.Prefix),
 		"avatar_url": config.Logging.DiscordSignLogsIconURL,
 		"content":    "@everyone",
 		"embeds": []map[string]interface{}{
@@ -174,14 +174,22 @@ func SendStaffAlertToDiscord(title string, description string, color int, fields
 		},
 	}
 
-	jsonParams, _ := json.Marshal(params)
-	req, _ := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
+	jsonParams, err := json.Marshal(params)
+	if err != nil {
+		log.Println("Failed to marshal json", err)
+		return
+	}
+	req, err := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
+	if err != nil {
+		log.Println("Failed to create new request", err)
+		return
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Failed to send logs to discord", err)
+		log.Println("Failed to send staff alert to discord", err)
 		return
 	}
 	defer resp.Body.Close()
