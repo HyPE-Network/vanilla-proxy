@@ -83,58 +83,6 @@ func (player *Player) SendSound(sound string, volume float32, pitch float32) {
 	player.DataPacket(pk)
 }
 
-func (player *Player) HasScoreboard() bool {
-	return player.PlayerData.CurrentScoreboard.Load() != ""
-}
-
-func (player *Player) SendScoreboard(sb *scoreboard.Scoreboard) {
-	currentName, currentLines := player.PlayerData.CurrentScoreboard.Load(), player.PlayerData.CurrentLines.Load()
-
-	if currentName != sb.Name() {
-		player.RemoveScoreboard()
-		player.DataPacket(&packet.SetDisplayObjective{
-			DisplaySlot:   "sidebar",
-			ObjectiveName: sb.Name(),
-			DisplayName:   sb.Name(),
-			CriteriaName:  "dummy",
-		})
-		player.PlayerData.CurrentScoreboard.Store(sb.Name())
-		player.PlayerData.CurrentLines.Store(append([]string(nil), sb.Lines()...))
-	} else {
-		// Remove all current lines from the scoreboard. We can't replace them without removing them.
-		pk := &packet.SetScore{ActionType: packet.ScoreboardActionRemove}
-		for i := range currentLines {
-			pk.Entries = append(pk.Entries, protocol.ScoreboardEntry{
-				EntryID:       int64(i),
-				ObjectiveName: currentName,
-				Score:         int32(i),
-			})
-		}
-		if len(pk.Entries) > 0 {
-			player.DataPacket(pk)
-		}
-	}
-	pk := &packet.SetScore{ActionType: packet.ScoreboardActionModify}
-	for k, line := range sb.Lines() {
-		pk.Entries = append(pk.Entries, protocol.ScoreboardEntry{
-			EntryID:       int64(k),
-			ObjectiveName: sb.Name(),
-			Score:         int32(k),
-			IdentityType:  protocol.ScoreboardIdentityFakePlayer,
-			DisplayName:   line,
-		})
-	}
-	if len(pk.Entries) > 0 {
-		player.DataPacket(pk)
-	}
-}
-
-func (player *Player) RemoveScoreboard() {
-	player.DataPacket(&packet.RemoveObjective{ObjectiveName: player.PlayerData.CurrentScoreboard.Load()})
-	player.PlayerData.CurrentScoreboard.Store("")
-	player.PlayerData.CurrentLines.Store([]string{})
-}
-
 func (player *Player) Transfer(address string, port uint16) {
 	pk := &packet.Transfer{
 		Address: address,

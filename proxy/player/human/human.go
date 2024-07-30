@@ -2,7 +2,6 @@ package human
 
 import (
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 
 	"github.com/go-gl/mathgl/mgl32"
@@ -19,10 +18,6 @@ type Human interface {
 	SendMessage(string)
 	SendPopup(string)
 	SendTip(string)
-
-	HasScoreboard() bool
-	SendScoreboard(*scoreboard.Scoreboard)
-	RemoveScoreboard()
 
 	Transfer(string, uint16)
 
