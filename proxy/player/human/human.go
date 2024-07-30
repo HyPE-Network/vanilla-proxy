@@ -65,6 +65,7 @@ type Human interface {
 	SetLastItemStackRequestID(id int32)
 	GetNextItemStackRequestID() int32
 	SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo)
+	ClearItemsInContainers()
 	GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo
 	GetCursorItem() protocol.StackRequestSlotInfo
 }

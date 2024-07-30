@@ -353,6 +353,10 @@ func (player *Player) SetItemToContainerSlot(slotInfo protocol.StackRequestSlotI
 	player.PlayerData.ItemsInContainers = append(player.PlayerData.ItemsInContainers, slotInfo)
 }
 
+func (player *Player) ClearItemsInContainers() {
+	player.PlayerData.ItemsInContainers = nil
+}
+
 // GetItemsInContainerSlot returns the amount of items that are in the container slot that the player has put in.
 func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo {
 	for _, slotInfo := range player.PlayerData.ItemsInContainers {

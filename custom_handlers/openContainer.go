@@ -25,6 +25,7 @@ func (ContainerCloseHandler) Handle(pk packet.Packet, player human.Human) (bool,
 	//log.Println("Player has closed a container", dataPacket)
 	player.SetOpenContainerWindowID(0)
 	player.SetOpenContainerType(0)
+	player.ClearItemsInContainers() // Clear bc container is closed
 
 	return true, dataPacket, nil
 }
