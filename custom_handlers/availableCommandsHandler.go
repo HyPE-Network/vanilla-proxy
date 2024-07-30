@@ -3,6 +3,7 @@ package custom_handlers
 import (
 	"strings"
 
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
@@ -38,7 +39,7 @@ func (AvailableCommandsHandler) Handle(pk packet.Packet, player human.Human) (bo
 	commandsToRemove := []string{"me", "tell"}
 	dataPacket.Commands = RemoveCommands(dataPacket.Commands, commandsToRemove)
 
-	player.SetBDSAvailableCommands(dataPacket)
+	proxy.ProxyInstance.Worlds.SetBDSAvailableCommands(dataPacket)
 
 	return true, dataPacket, nil
 }
@@ -55,7 +56,7 @@ func (CommandRequestHandler) Handle(pk packet.Packet, player human.Human) (bool,
 		return false, pk, nil
 	}
 
-	minecraftCommands := player.GetData().BDSAvailableCommands.Commands
+	minecraftCommands := proxy.ProxyInstance.Worlds.BDSAvailableCommands.Commands
 	// Check if {command} is a name inside {minecraftCommands}
 	for _, cmd := range minecraftCommands {
 		if cmd.Name == command {

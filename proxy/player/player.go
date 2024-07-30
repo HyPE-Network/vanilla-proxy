@@ -304,11 +304,6 @@ func (player *Player) CommandPermissions() byte {
 	}
 }
 
-// SetBDSAvailableCommands sets the AvailableCommands packet that is sent to the player when they join the server.
-func (player *Player) SetBDSAvailableCommands(pk *packet.AvailableCommands) {
-	player.PlayerData.BDSAvailableCommands = *pk
-}
-
 // GetItemEntry returns the item entry of an item with the specified network ID. If the item is not found, nil is returned.
 func (player *Player) GetItemEntry(networkID int32) *protocol.ItemEntry {
 	items := player.GetData().GameData.Items
@@ -321,37 +316,6 @@ func (player *Player) GetItemEntry(networkID int32) *protocol.ItemEntry {
 	}
 	item := items[idx]
 	return &item
-}
-
-func (player *Player) GetItemComponentEntry(name string) *protocol.ItemComponentEntry {
-	for _, entry := range player.PlayerData.ItemComponentEntries {
-		if entry.Name == name {
-			return &entry
-		}
-	}
-	return nil
-}
-
-func (player *Player) GetItemComponentEntries() []protocol.ItemComponentEntry {
-	return player.PlayerData.ItemComponentEntries
-}
-
-func (player *Player) AddItemComponentEntry(entry *protocol.ItemComponentEntry) {
-	player.PlayerData.ItemComponentEntries = append(player.PlayerData.ItemComponentEntries, *entry)
-}
-
-func (player *Player) RemoveItemComponentEntry(entry *protocol.ItemComponentEntry) {
-	idx := slices.IndexFunc(player.PlayerData.ItemComponentEntries, func(e protocol.ItemComponentEntry) bool {
-		return e.Name == entry.Name
-	})
-	if idx == -1 {
-		return
-	}
-	player.PlayerData.ItemComponentEntries = append(player.PlayerData.ItemComponentEntries[:idx], player.PlayerData.ItemComponentEntries[idx+1:]...)
-}
-
-func (player *Player) SetItemComponentEntries(entries []protocol.ItemComponentEntry) {
-	player.PlayerData.ItemComponentEntries = entries
 }
 
 // SetOpenContainerWindowID sets the ID of the window that is currently open for the player.

@@ -3,6 +3,7 @@ package custom_handlers
 import (
 	"log"
 
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 	"github.com/sandertv/gophertunnel/minecraft"
@@ -161,7 +162,7 @@ func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Hu
 			// Item not sent over, most likely a minecraft item
 			return true, pk, nil
 		}
-		itemComponents := player.GetItemComponentEntry(item.Name)
+		itemComponents := proxy.ProxyInstance.Worlds.GetItemComponentEntry(item.Name)
 		if itemComponents == nil {
 			// Item does not have any components, most-likely a minecraft item
 			return true, pk, nil

@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/HyPE-Network/vanilla-proxy/proxy"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -216,7 +217,7 @@ func (CustomCommandRegisterHandler) Handle(pk packet.Packet, player human.Human)
 	availableCommands := formatAvailableCommands(commands, player)
 
 	// Merge the commands here, with the existing commands.
-	bdsSentCommands := player.GetData().BDSAvailableCommands
+	bdsSentCommands := proxy.ProxyInstance.Worlds.BDSAvailableCommands
 	availableCommands = command.MergeAvailableCommands(availableCommands, bdsSentCommands)
 
 	// Send the AvailableCommands packet to the player.
