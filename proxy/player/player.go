@@ -6,9 +6,7 @@ import (
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/world"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
@@ -32,8 +30,6 @@ func NewPlayer(conn *minecraft.Conn, session *session.Session) *Player {
 		Session: session,
 		PlayerData: &data.PlayerData{
 			GameData:         conn.GameData(),
-			Forms:            make(map[uint32]form.Form),
-			BrokenBlocks:     make(map[protocol.BlockPos]uint32),
 			StartSessionTime: utils.GetTimestamp(),
 			Authorized:       false,
 		},
@@ -188,10 +184,6 @@ func (player *Player) textPacket(message string, textType byte) {
 }
 
 func (player *Player) DataPacket(pk packet.Packet) {
-	if player.GetData().Closed {
-		return
-	}
-
 	if err := player.Session.Connection.ClientConn.WritePacket(pk); err != nil {
 		log.Logger.Errorln(err)
 	}

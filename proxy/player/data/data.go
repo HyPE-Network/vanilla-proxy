@@ -1,32 +1,18 @@
 package data
 
 import (
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
 	"github.com/go-gl/mathgl/mgl32"
-
-	"github.com/df-mc/atomic"
 
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 type PlayerData struct {
-	GameData          minecraft.GameData
-	Forms             map[uint32]form.Form
-	Closed            bool
-	BrokenBlocks      map[protocol.BlockPos]uint32
-	CurrentScoreboard atomic.Value[string]
-	CurrentLines      atomic.Value[[]string]
-	StartSessionTime  int64
-	Authorized        bool
-	FakeChestOpen     bool
-	FakeChestPos      protocol.BlockPos
-	Windows           byte
-	// Commands that were sent by BDS and are available to the player.
-	BDSAvailableCommands packet.AvailableCommands
-	// ItemComponentEntries holds a list of all custom items with their respective components set.
-	ItemComponentEntries []protocol.ItemComponentEntry
+	GameData         minecraft.GameData
+	StartSessionTime int64
+	Authorized       bool
+	Windows          byte
+
 	// OpenContainerWindowId is the ID of the window that is currently open for the player.
 	OpenContainerWindowId byte
 	// OpenContainerType is the type of container that is currently open for the player.
@@ -37,10 +23,6 @@ type PlayerData struct {
 	ItemsInContainers []protocol.StackRequestSlotInfo
 	// LastUpdatedLocation is the last location that was updated for the player (updated by auth-input).
 	LastUpdatedLocation mgl32.Vec3
-}
-
-func (pd *PlayerData) SetClosed() {
-	pd.Closed = true
 }
 
 func (pd *PlayerData) GetNextWindowId() byte {
