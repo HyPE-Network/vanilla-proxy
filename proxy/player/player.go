@@ -248,20 +248,6 @@ func (player *Player) CommandPermissions() byte {
 	}
 }
 
-// GetItemEntry returns the item entry of an item with the specified network ID. If the item is not found, nil is returned.
-func (player *Player) GetItemEntry(networkID int32) *protocol.ItemEntry {
-	items := player.GetData().GameData.Items
-	idx := slices.IndexFunc(items, func(item protocol.ItemEntry) bool {
-		return item.RuntimeID == int16(networkID)
-	})
-	if idx == -1 {
-		// Unknown item?
-		return nil
-	}
-	item := items[idx]
-	return &item
-}
-
 // SetOpenContainerWindowID sets the ID of the window that is currently open for the player.
 func (player *Player) SetOpenContainerWindowID(windowId byte) {
 	player.PlayerData.OpenContainerWindowId = windowId

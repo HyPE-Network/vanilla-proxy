@@ -53,8 +53,6 @@ type Human interface {
 	PlayerPermissions() byte
 	CommandPermissions() byte
 
-	GetItemEntry(networkID int32) *protocol.ItemEntry
-
 	SetOpenContainerWindowID(windowId byte)
 	SetOpenContainerType(containerType byte)
 	SetLastItemStackRequestID(id int32)
