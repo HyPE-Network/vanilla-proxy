@@ -45,6 +45,7 @@ func loadHandlers() handler.HandlerManager {
 	h.RegisterHandler(packet.IDItemStackRequest, custom_handlers.ItemStackRequestHandler{})
 	h.RegisterHandler(packet.IDItemStackResponse, custom_handlers.ItemStackResponseHandler{})
 	h.RegisterHandler(packet.IDAddItemActor, custom_handlers.AddItemActorHandler{})
+	h.RegisterHandler(packet.IDPlayerList, custom_handlers.PlayerListHandler{})
 
 	return h
 }
