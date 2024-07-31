@@ -15,6 +15,7 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/playerlist"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/whitelist"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/world"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
@@ -30,20 +31,23 @@ import (
 var ProxyInstance *Proxy
 
 type Proxy struct {
-	Worlds           *world.Worlds
-	Config           utils.Config
-	Handlers         handler.HandlerManager
-	CommandManager   *command.CommandManager
-	Listener         *minecraft.Listener
-	WhitelistManager *whitelist.WhitelistManager
+	Worlds            *world.Worlds
+	Config            utils.Config
+	Handlers          handler.HandlerManager
+	CommandManager    *command.CommandManager
+	Listener          *minecraft.Listener
+	WhitelistManager  *whitelist.WhitelistManager
+	PlayerListManager *playerlist.PlayerlistManager
 }
 
 func New(config utils.Config) *Proxy {
 	commandManager := command.InitManager(config.Server.Ops)
+	playerListManager := playerlist.Init()
 
 	Proxy := &Proxy{
-		Config:         config,
-		CommandManager: commandManager,
+		Config:            config,
+		CommandManager:    commandManager,
+		PlayerListManager: playerListManager,
 	}
 
 	if config.WorldBorder.Enabled {
@@ -118,7 +122,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	serverConn, err := minecraft.Dialer{
 		KeepXBLIdentityData: true,
 		ClientData:          conn.ClientData(),
-		IdentityData:        conn.IdentityData(),
+		IdentityData:        arg.PlayerListManager.GetConnIdentity(conn),
 		DownloadResourcePack: func(id uuid.UUID, version string, current int, total int) bool {
 			return false
 		},
