@@ -1,8 +1,11 @@
+# Vanilla Proxy
+
 ## How to start a proxy server
 1. Download and install [Go](https://go.dev/dl/)
 2. Download and run Minecraft [Bedrock Dedicated Server](https://www.minecraft.net/en-us/download/server/bedrock).
 
 ```You must set online-mode=false in BDS server.properties```
+
 ```You must set client-side-chunk-generation-enabled=false in BDS server.properties```
 
 3. Run in the console:
@@ -17,7 +20,7 @@ go run main.go
 ## Overview
 1. You have all the advantages of the original BDS.
 2. You can modify and cancel any packets passing through the proxy using the handler system.
-3. You can organize the protection of your server from ddos attacks.
+3. You can organize the protection of your server from DDOS attacks.
 4. You can set the boards of the world. Blocks outside the border will not be displayed to the player. The coordinates of the corner must be divided by 16 so that the borders are displayed correctly.
 5. Support for a whitelist that can store the player's xbox id(xuid).
 6. You can use a special bot for Windows with operator capabilities or send commands directly to screen on your Linux server. Screen must have the name of the original server port (for example 19132).
