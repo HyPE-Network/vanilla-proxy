@@ -14,6 +14,10 @@ type Worlds struct {
 	BDSAvailableCommands packet.AvailableCommands
 	// ItemComponentEntries holds a list of all custom items with their respective components set.
 	ItemComponentEntries []protocol.ItemComponentEntry
+	// Items holds a list of all custom items that are available in the server.
+	Items []protocol.ItemEntry
+	// CustomBlocks holds a list of all custom blocks that are available in the server.
+	CustomBlocks []protocol.BlockEntry
 }
 
 func Init(border *math.Area2) *Worlds {
@@ -24,9 +28,39 @@ func Init(border *math.Area2) *Worlds {
 	}
 }
 
+func (worlds *Worlds) SetItems(items []protocol.ItemEntry) {
+	worlds.Items = items
+}
+
+func (worlds *Worlds) GetItems() []protocol.ItemEntry {
+	return worlds.Items
+}
+
+func (worlds *Worlds) SetCustomBlocks(blocks []protocol.BlockEntry) {
+	worlds.CustomBlocks = blocks
+}
+
+func (worlds *Worlds) GetCustomBlocks() []protocol.BlockEntry {
+	return worlds.CustomBlocks
+}
+
 // SetBDSAvailableCommands sets the AvailableCommands packet that is sent to the player when they join the server.
 func (worlds *Worlds) SetBDSAvailableCommands(pk *packet.AvailableCommands) {
 	worlds.BDSAvailableCommands = *pk
+}
+
+// GetItemEntry returns the item entry of an item with the specified network ID. If the item is not found, nil is returned.
+func (worlds *Worlds) GetItemEntry(networkID int32) *protocol.ItemEntry {
+	items := worlds.Items
+	idx := slices.IndexFunc(items, func(item protocol.ItemEntry) bool {
+		return item.RuntimeID == int16(networkID)
+	})
+	if idx == -1 {
+		// Unknown item?
+		return nil
+	}
+	item := items[idx]
+	return &item
 }
 
 func (worlds *Worlds) GetItemComponentEntry(name string) *protocol.ItemComponentEntry {

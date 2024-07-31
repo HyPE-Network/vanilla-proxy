@@ -140,7 +140,11 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	var g sync.WaitGroup
 	g.Add(2)
 	go func() {
-		if err := conn.StartGame(serverConn.GameData()); err != nil {
+		gameData := serverConn.GameData()
+		arg.Worlds.SetItems(gameData.Items)
+		arg.Worlds.SetCustomBlocks(gameData.CustomBlocks)
+
+		if err := conn.StartGame(gameData); err != nil {
 			log.Logger.Errorln(err)
 			success = false
 		}

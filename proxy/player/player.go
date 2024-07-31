@@ -2,7 +2,6 @@ package player
 
 import (
 	"math"
-	"slices"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
@@ -25,11 +24,16 @@ type Player struct {
 
 // Creates a new player instance from a server conn
 func NewPlayer(conn *minecraft.Conn, session *session.Session) *Player {
+	parsedGameData := conn.GameData()
+	// Remove Items & Blocks from `parsedGameData` to reduce the size of the struct
+	parsedGameData.Items = nil
+	parsedGameData.CustomBlocks = nil
+
 	return &Player{
 		Name:    conn.IdentityData().DisplayName,
 		Session: session,
 		PlayerData: &data.PlayerData{
-			GameData:         conn.GameData(),
+			GameData:         parsedGameData,
 			StartSessionTime: utils.GetTimestamp(),
 			Authorized:       false,
 		},

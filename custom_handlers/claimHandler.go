@@ -157,7 +157,7 @@ func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Hu
 			return true, pk, nil
 		}
 
-		item := player.GetItemEntry(td.HeldItem.Stack.ItemType.NetworkID)
+		item := proxy.ProxyInstance.Worlds.GetItemEntry(td.HeldItem.Stack.ItemType.NetworkID)
 		if item == nil {
 			// Item not sent over, most likely a minecraft item
 			return true, pk, nil
