@@ -119,10 +119,13 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}
 
+	clientData := arg.PlayerListManager.GetConnClientData(conn)
+	identityData := arg.PlayerListManager.GetConnIdentityData(conn)
+
 	serverConn, err := minecraft.Dialer{
 		KeepXBLIdentityData: true,
-		ClientData:          conn.ClientData(),
-		IdentityData:        arg.PlayerListManager.GetConnIdentity(conn),
+		ClientData:          clientData,
+		IdentityData:        identityData,
 		DownloadResourcePack: func(id uuid.UUID, version string, current int, total int) bool {
 			return false
 		},

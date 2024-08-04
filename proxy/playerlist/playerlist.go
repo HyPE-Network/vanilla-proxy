@@ -14,6 +14,10 @@ type Player struct {
 	PlayerName string `json:"playerName"`
 	// The player's identity they connected with, this was the first UUID they connected with
 	Identity string `json:"identity"`
+	// The player's self-signed ID, this needs to be set every time the player joins
+	// Because it is what BDS uses to generate a ID from.
+	// So if a player switches devices, we want them to use the same ID.
+	ClientSelfSignedID string `json:"clientSelfSignedID"`
 }
 
 type PlayerlistManager struct {
@@ -60,23 +64,44 @@ func Init() *PlayerlistManager {
 	return plm
 }
 
-// GetConnIdentity returns the identity data for a player's connection
-func (plm *PlayerlistManager) GetConnIdentity(conn *minecraft.Conn) login.IdentityData {
-	xuid := conn.IdentityData().XUID
-	// If the player is not in the playerlist, return the identity data from the connection
+// GetConnIdentityData returns the identity data for a player's connection
+func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) login.IdentityData {
+	identityData := conn.IdentityData()
+	xuid := identityData.XUID
+
+	// If the player is in the playerlist, return the identity data that is stored
 	if player, ok := plm.Players[xuid]; ok {
 		return login.IdentityData{
 			XUID:        xuid,
 			DisplayName: player.PlayerName,
 			Identity:    player.Identity,
-			TitleID:     conn.IdentityData().TitleID,
+			TitleID:     identityData.TitleID,
 		}
 	}
 
 	// Set the player in the playerlist and return the identity data from the connection
-	plm.SetPlayer(xuid, conn.IdentityData())
+	plm.SetPlayer(xuid, conn)
 
-	return conn.IdentityData()
+	// If the player is not in the playerlist, return the identity data from the connection
+	return identityData
+}
+
+// GetConnClientData returns the client data for a player's connection
+func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) login.ClientData {
+	xuid := conn.IdentityData().XUID
+	clientData := conn.ClientData()
+
+	// If the player is in the playerlist, return the client data that is stored
+	if player, ok := plm.Players[xuid]; ok {
+		clientData.SelfSignedID = player.ClientSelfSignedID
+		return clientData
+	}
+
+	// Set the player in the playerlist and return the identity data from the connection
+	plm.SetPlayer(xuid, conn)
+
+	// If the player is not in the playerlist, return the identity data from the connection
+	return clientData
 }
 
 // GetXUIDFromName returns the XUID of a player by their name
@@ -94,10 +119,11 @@ func (plm *PlayerlistManager) GetPlayer(xuid string) Player {
 	return plm.Players[xuid]
 }
 
-func (plm *PlayerlistManager) SetPlayer(xuid string, identityData login.IdentityData) {
+func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) {
 	player := Player{
-		PlayerName: identityData.DisplayName,
-		Identity:   identityData.Identity,
+		PlayerName:         conn.IdentityData().DisplayName,
+		Identity:           conn.IdentityData().Identity,
+		ClientSelfSignedID: conn.ClientData().SelfSignedID,
 	}
 	plm.Players[xuid] = player
 
