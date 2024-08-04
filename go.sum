@@ -24,8 +24,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
-github.com/smell-of-curry/gophertunnel v1.39.1-0.20240729210107-f51d5710121d h1:WeMSfUxbmIUyDeaoRD0XnMKh4ux6NWxjxRWj26Wgc+Y=
-github.com/smell-of-curry/gophertunnel v1.39.1-0.20240729210107-f51d5710121d/go.mod h1:uSaX7RbVaCcxsGAx2vyZnkT0M6kZFGCdAqLn0+wuKyY=
+github.com/smell-of-curry/gophertunnel v1.39.1-0.20240804205628-d981ffcead51 h1:CnzHlwGD16BHqgBPSUaTuSyyh21lal+po15S/+uf6zY=
+github.com/smell-of-curry/gophertunnel v1.39.1-0.20240804205628-d981ffcead51/go.mod h1:uSaX7RbVaCcxsGAx2vyZnkT0M6kZFGCdAqLn0+wuKyY=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
