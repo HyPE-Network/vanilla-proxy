@@ -139,14 +139,16 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	log.Logger.Debugln("Server connection established for", serverConn.IdentityData().DisplayName)
 
+	gameData := serverConn.GameData()
+	gameData.WorldSeed = 0
+	gameData.ClientSideGeneration = false
+	arg.Worlds.SetItems(gameData.Items)
+	arg.Worlds.SetCustomBlocks(gameData.CustomBlocks)
+
 	var success = true
 	var g sync.WaitGroup
 	g.Add(2)
 	go func() {
-		gameData := serverConn.GameData()
-		arg.Worlds.SetItems(gameData.Items)
-		arg.Worlds.SetCustomBlocks(gameData.CustomBlocks)
-
 		if err := conn.StartGame(gameData); err != nil {
 			log.Logger.Errorln(err)
 			success = false
