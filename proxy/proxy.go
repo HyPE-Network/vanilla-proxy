@@ -133,7 +133,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	if err != nil {
 		log.Logger.Errorln("Error in establishing serverConn: ", err)
-		arg.Listener.Disconnect(conn, err.Error())
+		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
 		return
 	}
 
