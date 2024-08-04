@@ -30,7 +30,7 @@ func (PlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, pa
 			OnGround:        true,
 			Mode:            packet.MoveModeTeleport,
 			TeleportCause:   packet.TeleportCauseCommand,
-			Tick:            dataPacket.Tick,
+			Tick:            dataPacket.ClientTick,
 		}
 		player.DataPacket(movePlayerPk)
 
