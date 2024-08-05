@@ -86,7 +86,7 @@ func valueToParamType(child IEngineResponseCommandChild) (t uint32, enum command
 
 // sendAvailableCommands sends all available commands of the server. Once sent, they will be visible in the
 // /help list and will be auto-completed.
-func formatAvailableCommands(commands map[string]IEngineResponseCommand, player human.Human) packet.AvailableCommands {
+func formatAvailableCommands(commands map[string]IEngineResponseCommand) packet.AvailableCommands {
 	pk := &packet.AvailableCommands{}
 	var enums []commandEnum
 	enumIndices := map[string]uint32{}
@@ -214,7 +214,7 @@ func (CustomCommandRegisterHandler) Handle(pk packet.Packet, player human.Human)
 	}
 
 	// Prepare the AvailableCommands packet.
-	availableCommands := formatAvailableCommands(commands, player)
+	availableCommands := formatAvailableCommands(commands)
 
 	// Merge the commands here, with the existing commands.
 	bdsSentCommands := proxy.ProxyInstance.Worlds.BDSAvailableCommands

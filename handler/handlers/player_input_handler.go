@@ -34,19 +34,6 @@ func (PlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, pa
 		}
 		player.DataPacket(movePlayerPk)
 
-		// updateAbilitiesPk := &packet.UpdateAbilities{
-		// 	AbilityData: protocol.AbilityData{
-		// 		EntityUniqueID:    playerData.EntityUniqueID,
-		// 		PlayerPermissions: player.PlayerPermissions(),
-		// 		CommandPermissions: player.CommandPermissions(),
-		// 		Layers: 		  []protocol.AbilityLayer{protocol.AbilityLayer{
-		// 			Type: protocol.AbilityLayerTypeBase,
-		// 			Abilities: protocol.AbilityMine,
-
-		// 		}},
-		// 	},
-		// }
-
 		return false, pk, nil
 	}
 
