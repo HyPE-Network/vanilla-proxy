@@ -12,16 +12,6 @@ type Config struct {
 		ProxyAddress  string
 		RemoteAddress string
 	}
-	Bot struct {
-		Enabled     bool
-		XUID        string
-		DisplayName string
-	}
-	Rcon struct {
-		Enabled  bool
-		Port     int
-		Password string
-	}
 	Server struct {
 		ViewDistance    int32
 		Whitelist       bool
@@ -108,10 +98,6 @@ func ReadConfig() Config {
 
 	if c.Server.ViewDistance <= 0 {
 		panic("ViewDistance must be a value greater than 0!")
-	}
-
-	if c.Rcon.Enabled && (c.Rcon.Port == 0 || c.Rcon.Password == "") {
-		panic("Rcon is enabled and not configured in config!")
 	}
 
 	if c.Database.Host == "" {
