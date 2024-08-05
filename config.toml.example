@@ -1,0 +1,36 @@
+[Connection]
+  ProxyAddress = "0.0.0.0:19132"
+  RemoteAddress = "0.0.0.0:19134"
+
+[Api]
+  ApiHost = "https://pokebedrock.com"
+  ApiKey = "..."
+
+[Database]
+  Host = "http://127.0.0.1"
+  Key = "..."
+  Name = "testing"
+  Port = 3000
+
+[Logging]
+  DiscordChatLogsWebhook = "..."
+  DiscordCommandLogsWebhook = "..."
+  DiscordSignLogsIconURL = "https://media.forgecdn.net/avatars/121/268/636409261203329160.png"
+  DiscordSignLogsWebhook = "..."
+  DiscordStaffAlertsWebhook = "..."
+
+[Resources]
+  PackURLs = ["https://github.com/smell-of-curry/pokebedrock-res/releases/download/v2.10.22/PokeBedrock.RES.2.10.22.mcpack"]
+
+[Server]
+  DisableXboxAuth = false
+  Prefix = "TESTING"
+  ViewDistance = 10
+  Whitelist = true
+
+[WorldBorder]
+  Enabled = true
+  MaxX = 6000
+  MaxZ = 6000
+  MinX = -6000
+  MinZ = -6000
