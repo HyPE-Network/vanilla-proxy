@@ -43,8 +43,6 @@ type Config struct {
 		DiscordChatLogsWebhook    string
 		DiscordSignLogsWebhook    string
 		DiscordSignLogsIconURL    string
-		DiscordErrorLogsWebhook   string
-		DiscordErrorLogsIconUrl   string
 		DiscordStaffAlertsWebhook string
 	}
 }
@@ -118,10 +116,6 @@ func ReadConfig() Config {
 
 	if c.Logging.DiscordChatLogsWebhook == "" {
 		panic("Discord Chat Logs Webhook must be provided!")
-	}
-
-	if c.Logging.DiscordErrorLogsWebhook == "" {
-		panic("Discord Error Logs Webhook must be provided!")
 	}
 
 	if c.Logging.DiscordStaffAlertsWebhook == "" {

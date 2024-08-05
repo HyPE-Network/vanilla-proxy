@@ -125,7 +125,7 @@ func LogErrorToDiscord(err error) {
 	log.Println("Error:", err)
 	params := map[string]interface{}{
 		"username":   fmt.Sprintf("[%s] Failed to Ping Database", config.Server.Prefix),
-		"avatar_url": config.Logging.DiscordErrorLogsIconUrl,
+		"avatar_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGcSsrxGsP-WcwrSPJCalNokgnVFtho64ycreClTns3g&s",
 		"content":    "@everyone",
 		"embeds": []map[string]interface{}{
 			{
