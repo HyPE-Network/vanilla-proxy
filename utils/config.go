@@ -26,7 +26,6 @@ type Config struct {
 		ViewDistance    int32
 		Whitelist       bool
 		DisableXboxAuth bool
-		Ops             []string
 		Prefix          string
 	}
 	WorldBorder struct {

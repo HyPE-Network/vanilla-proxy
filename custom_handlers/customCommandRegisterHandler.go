@@ -111,9 +111,9 @@ func formatAvailableCommands(commands map[string]IEngineResponseCommand, player 
 		}
 
 		for i, param := range params {
-			if param.RequiresOp && !player.IsOP() {
-				continue
-			}
+			// if param.RequiresOp && !player.IsOP() {
+			// 	continue
+			// }
 			t, enum := valueToParamType(param)
 			t |= protocol.CommandArgValid
 

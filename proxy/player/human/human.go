@@ -48,11 +48,6 @@ type Human interface {
 
 	SendXUIDToAddon()
 
-	IsOP() bool
-
-	PlayerPermissions() byte
-	CommandPermissions() byte
-
 	SetOpenContainerWindowID(windowId byte)
 	SetOpenContainerType(containerType byte)
 	SetLastItemStackRequestID(id int32)

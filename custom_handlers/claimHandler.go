@@ -132,10 +132,6 @@ type ClaimInventoryTransactionHandler struct {
 func (ClaimInventoryTransactionHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.InventoryTransaction)
 
-	if player.IsOP() {
-		return true, pk, nil
-	}
-
 	playerData := player.GetData().GameData
 
 	switch td := dataPacket.TransactionData.(type) {
