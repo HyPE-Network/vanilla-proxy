@@ -5,17 +5,13 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
-
-	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
 type WhitelistManager struct {
 	Players map[string]string
 }
 
-func Init(commandManager *command.CommandManager) *WhitelistManager {
+func Init() *WhitelistManager {
 	wm := &WhitelistManager{
 		Players: make(map[string]string, 0),
 	}
@@ -43,18 +39,6 @@ func Init(commandManager *command.CommandManager) *WhitelistManager {
 	if err := json.Unmarshal(data, wm); err != nil {
 		log.Fatalf("error decoding whitelist: %v", err)
 	}
-
-	for _, name := range commandManager.Ops {
-		if _, ok := wm.Players[name]; !ok {
-			wm.AddPlayer(name)
-		}
-	}
-
-	commandManager.RegisterCommand(protocol.Command{
-		Name:        "whitelist",
-		Description: "Server whitelist",
-		Overloads:   []protocol.CommandOverload{},
-	}, WhitelistCommandExecutor{WhitelistManager: wm})
 
 	return wm
 }

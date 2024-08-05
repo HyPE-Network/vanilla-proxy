@@ -12,7 +12,6 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/math"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/command"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/playerlist"
@@ -34,19 +33,16 @@ type Proxy struct {
 	Worlds            *world.Worlds
 	Config            utils.Config
 	Handlers          handler.HandlerManager
-	CommandManager    *command.CommandManager
 	Listener          *minecraft.Listener
 	WhitelistManager  *whitelist.WhitelistManager
 	PlayerListManager *playerlist.PlayerlistManager
 }
 
 func New(config utils.Config) *Proxy {
-	commandManager := command.InitManager(config.Server.Ops)
 	playerListManager := playerlist.Init()
 
 	Proxy := &Proxy{
 		Config:            config,
-		CommandManager:    commandManager,
 		PlayerListManager: playerListManager,
 	}
 
@@ -55,7 +51,7 @@ func New(config utils.Config) *Proxy {
 	}
 
 	if config.Server.Whitelist {
-		Proxy.WhitelistManager = whitelist.Init(commandManager)
+		Proxy.WhitelistManager = whitelist.Init()
 	}
 
 	return Proxy
