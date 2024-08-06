@@ -67,7 +67,7 @@ func FormatTime(t time.Time) string {
 func FetchDatabase[T any](tableName string) (map[string]T, error) {
 	dbConfig := ReadConfig().Database
 
-	uri := dbConfig.Host + ":" + fmt.Sprint(dbConfig.Port) + "/api/database/" + dbConfig.Name + "/table/" + tableName
+	uri := dbConfig.Host + "/api/database/" + dbConfig.Name + "/table/" + tableName
 
 	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)
 
@@ -130,7 +130,7 @@ func LogErrorToDiscord(err error) {
 		"embeds": []map[string]interface{}{
 			{
 				"title":       "Failed to Ping Database",
-				"description": fmt.Sprintf("The Proxy has failed to ping the database on port: %s. Please check the database status!", fmt.Sprint(config.Database.Port)),
+				"description": fmt.Sprintf("The Proxy has failed to ping the database on port: %s. Please check the database status!", fmt.Sprint(config.Database.Host)),
 				"color":       16711680,
 				"timestamp":   time.Now().Format(time.RFC3339),
 				"fields": []map[string]interface{}{

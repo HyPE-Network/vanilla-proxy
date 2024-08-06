@@ -34,7 +34,6 @@ type Config struct {
 	}
 	Database struct {
 		Host string
-		Port int
 		Key  string
 		Name string
 	}
@@ -100,10 +99,6 @@ func ReadConfig() Config {
 
 	if c.Database.Host == "" {
 		panic("Database Host must be a valid address!")
-	}
-
-	if c.Database.Port == 0 {
-		panic("Database Port must be a valid port number!")
 	}
 
 	if c.Api.ApiHost == "" {

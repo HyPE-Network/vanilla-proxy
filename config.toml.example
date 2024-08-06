@@ -7,10 +7,9 @@
   ApiKey = "..."
 
 [Database]
-  Host = "http://127.0.0.1"
+  Host = "http://127.0.0.1:3000"
   Key = "..."
   Name = "testing"
-  Port = 3000
 
 [Logging]
   DiscordChatLogsWebhook = "..."
