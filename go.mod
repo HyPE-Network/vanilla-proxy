@@ -8,7 +8,7 @@ require (
 	github.com/go-gl/mathgl v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/pelletier/go-toml v1.9.5
-	github.com/sandertv/gophertunnel v1.39.1
+	github.com/sandertv/gophertunnel v1.39.3
 	github.com/sirupsen/logrus v1.9.3
 )
 
