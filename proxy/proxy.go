@@ -106,7 +106,15 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
+			// The listener closed, so we should restart it.
 			log.Logger.Errorln(err)
+			utils.SendStaffAlertToDiscord("Proxy Listener Closed", err.Error(), 16711680, []map[string]interface{}{
+				{
+					"name":   "Connection From",
+					"value":  c.RemoteAddr().String(),
+					"inline": true,
+				},
+			})
 			c.Close()
 			arg.Start(h)
 			return nil // Should return error, but we want to restart listener
