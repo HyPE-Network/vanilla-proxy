@@ -190,7 +190,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	arg.UpdatePlayerDetails(player)
 
 	go func() { // client->proxy
-		defer arg.DisconnectPlayer(player, "Connection closed")
+		defer arg.DisconnectPlayer(player, "Client Connection closed")
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
@@ -215,7 +215,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}()
 	go func() { // proxy->server
-		defer arg.DisconnectPlayer(player, "Connection closed")
+		defer arg.DisconnectPlayer(player, "Server Connection closed")
 		for {
 			pk, err := serverConn.ReadPacket()
 			if err != nil {
