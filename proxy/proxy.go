@@ -79,6 +79,15 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		resourcePacks = append(resourcePacks, resourcePack)
 	}
 
+	// Loop through all the pack paths and append each pack to the slice
+	for _, path := range arg.Config.Resources.PackPaths {
+		resourcePack, err := resource.ReadPath(path)
+		if err != nil {
+			return err
+		}
+		resourcePacks = append(resourcePacks, resourcePack)
+	}
+
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
 		AuthenticationDisabled: arg.Config.Server.DisableXboxAuth,
 		StatusProvider:         p,

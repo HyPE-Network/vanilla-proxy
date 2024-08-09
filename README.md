@@ -69,6 +69,7 @@ This proxy uses a bit of logging so that the discord and the staff team are upda
 This is still a work in progress feature, however this configuration can allow use of custom resource packs to be downloaded by players.
 
 - `PackURLs` - this is a string array of URLs that the players must download and activate to play.
+- `PackPaths` - this is a string array of pack paths that link to a folder that the player must download to play (used for local development).
 
 ### Server
 

@@ -20,6 +20,7 @@
 
 [Resources]
   PackURLs = ["https://github.com/smell-of-curry/pokebedrock-res/releases/download/v2.10.22/PokeBedrock.RES.2.10.22.mcpack"]
+  PackPaths = []
 
 [Server]
   DisableXboxAuth = false

@@ -30,7 +30,8 @@ type Config struct {
 		ApiKey  string
 	}
 	Resources struct {
-		PackURLs []string
+		PackURLs  []string
+		PackPaths []string
 	}
 	Database struct {
 		Host string
