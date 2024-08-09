@@ -140,9 +140,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		KeepXBLIdentityData: true,
 		ClientData:          clientData,
 		IdentityData:        identityData,
-		PacketFunc: func(header packet.Header, payload []byte, src, dst net.Addr) {
-			log.Logger.Debugln("Packet from", header.PacketID)
-		},
 		DownloadResourcePack: func(id uuid.UUID, version string, current int, total int) bool {
 			return false
 		},
