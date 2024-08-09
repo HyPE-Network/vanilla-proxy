@@ -156,7 +156,7 @@ func formatAvailableCommands(commands map[string]IEngineResponseCommand) packet.
 	}
 	pk.DynamicEnums = make([]protocol.DynamicEnum, 0, len(dynamicEnums))
 	for _, e := range dynamicEnums {
-		pk.DynamicEnums = append(pk.DynamicEnums, protocol.DynamicEnum{Type: e.Type, Values: e.Options})
+		pk.DynamicEnums = append(pk.DynamicEnums, protocol.DynamicEnum{Type: strings.ToLower(e.Type), Values: e.Options})
 	}
 
 	enumValueIndices := make(map[string]uint32, len(enums)*3)
