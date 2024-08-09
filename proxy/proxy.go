@@ -239,6 +239,11 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 // DisconnectPlayer disconnects a player from the proxy.
 func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	// Send close container packet
+	if player.IsBeingDisconnected() {
+		return // Player is already being disconnected, ignore this call
+	}
+	player.SetDisconnected(true)
+
 	openContainerId := player.GetData().OpenContainerWindowId
 	itemInContainers := player.GetData().ItemsInContainers
 

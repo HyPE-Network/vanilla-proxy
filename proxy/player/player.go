@@ -281,3 +281,13 @@ func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) prot
 func (player *Player) GetCursorItem() protocol.StackRequestSlotInfo {
 	return player.GetItemFromContainerSlot(protocol.ContainerCursor, 0)
 }
+
+// IsBeingDisconnected returns true if the player is currently being disconnected from the server.
+func (player *Player) IsBeingDisconnected() bool {
+	return player.PlayerData.Disconnected
+}
+
+// SetDisconnected sets the disconnected state of the player. If true, the player is currently being disconnected
+func (player *Player) SetDisconnected(disconnected bool) {
+	player.PlayerData.Disconnected = disconnected
+}

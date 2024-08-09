@@ -13,6 +13,8 @@ type PlayerData struct {
 	Authorized       bool
 	Windows          byte
 
+	// Disconnected is true if the player is currently being disconnected from the server.
+	Disconnected bool
 	// OpenContainerWindowId is the ID of the window that is currently open for the player.
 	OpenContainerWindowId byte
 	// OpenContainerType is the type of container that is currently open for the player.

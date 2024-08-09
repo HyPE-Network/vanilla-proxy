@@ -56,4 +56,7 @@ type Human interface {
 	ClearItemsInContainers()
 	GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo
 	GetCursorItem() protocol.StackRequestSlotInfo
+
+	IsBeingDisconnected() bool
+	SetDisconnected(disconnected bool)
 }
