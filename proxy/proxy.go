@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"net"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -251,30 +251,29 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 
 	openContainerId := player.GetData().OpenContainerWindowId
 	itemInContainers := player.GetData().ItemsInContainers
+	playerLastLocation := player.GetData().LastUpdatedLocation
+	lastLocationString := fmt.Sprintf("X: %f, Y: %f, Z: %f", playerLastLocation.X(), playerLastLocation.Y(), playerLastLocation.Z())
 
 	if openContainerId != 0 {
-		log.Logger.Println("Player has open container while disconnecting, *prob trying to dupe*")
+		log.Logger.Println(player.GetName(), "has open container:", openContainerId, "while disconnecting, *prob trying to dupe*", lastLocationString)
 
-		utils.SendStaffAlertToDiscord("Disconnecting With Open Container",
-			"A Player Has disconnected with an open container, please investigate!",
-			16711680,
-			[]map[string]interface{}{
-				{
-					"name":   "Player Name",
-					"value":  player.GetName(),
-					"inline": true,
-				},
-				{
-					"name":   "Container Type",
-					"value":  openContainerId,
-					"inline": true,
-				},
-				{
-					"name":   "Player Location",
-					"value":  player.GetData().LastUpdatedLocation,
-					"inline": true,
-				},
-			})
+		utils.SendStaffAlertToDiscord("Disconnect with open container!", "A Player Has disconnected with an open container, please investigate!", 16711680, []map[string]interface{}{
+			{
+				"name":   "Player Name",
+				"value":  player.GetName(),
+				"inline": true,
+			},
+			{
+				"name":   "Container Type",
+				"value":  openContainerId,
+				"inline": true,
+			},
+			{
+				"name":   "Player Location",
+				"value":  lastLocationString,
+				"inline": true,
+			},
+		})
 
 		// Send Item Stack Requests to clear the container
 		// Send Item Request to clear container id 13 (crafting table)
@@ -307,27 +306,23 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	cursorItem := player.GetItemFromContainerSlot(protocol.ContainerCombinedHotBarAndInventory, 0)
 	if cursorItem.StackNetworkID != 0 {
 		// Player left with a item in ContainerCombinedHotBarAndInventory
-		utils.SendStaffAlertToDiscord("Disconnecting With Item",
-			"A Player Has disconnected with a item in ContainerCombinedHotBarAndInventory, please investigate!",
-			16711680,
-			[]map[string]interface{}{
-				{
-					"name":   "Player Name",
-					"value":  player.GetName(),
-					"inline": true,
-				},
-				{
-					"name":   "Stack Network ID",
-					"value":  cursorItem.StackNetworkID,
-					"inline": true,
-				},
-				{
-					"name":   "Player Location",
-					"value":  player.GetData().LastUpdatedLocation,
-					"inline": true,
-				},
-			})
-
+		utils.SendStaffAlertToDiscord("Disconnecting With Item", "A Player Has disconnected with a item in ContainerCombinedHotBarAndInventory, please investigate!", 16711680, []map[string]interface{}{
+			{
+				"name":   "Player Name",
+				"value":  player.GetName(),
+				"inline": true,
+			},
+			{
+				"name":   "Stack Network ID",
+				"value":  cursorItem.StackNetworkID,
+				"inline": true,
+			},
+			{
+				"name":   "Player Location",
+				"value":  lastLocationString,
+				"inline": true,
+			},
+		})
 	}
 	log.Logger.Debugln("Disconnecting player:", player.GetName(), "with reason:", message)
 
