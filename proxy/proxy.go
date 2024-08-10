@@ -189,7 +189,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*120)
 
 	if err != nil {
-		log.Logger.Errorln("Error in establishing serverConn: ", err)
 		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
 		return
 	}
