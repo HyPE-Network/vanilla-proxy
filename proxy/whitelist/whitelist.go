@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
 )
 
 type WhitelistManager struct {
+	mu      sync.Mutex
 	Players map[string]string
 }
 
@@ -17,12 +19,15 @@ func Init() *WhitelistManager {
 		Players: make(map[string]string, 0),
 	}
 
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+
 	if _, err := os.Stat("whitelist.json"); os.IsNotExist(err) {
 		f, err := os.Create("whitelist.json")
 		if err != nil {
 			log.Logger.Fatalf("error creating whitelist: %v", err)
 		}
-		data, err := json.Marshal(wm)
+		data, err := json.Marshal(wm.Players)
 		if err != nil {
 			log.Logger.Fatalf("error encoding default whitelist: %v", err)
 		}
@@ -37,7 +42,7 @@ func Init() *WhitelistManager {
 		log.Logger.Fatalf("error reading whitelist: %v", err)
 	}
 
-	if err := json.Unmarshal(data, wm); err != nil {
+	if err := json.Unmarshal(data, &wm.Players); err != nil {
 		log.Logger.Fatalf("error decoding whitelist: %v", err)
 	}
 
@@ -45,6 +50,9 @@ func Init() *WhitelistManager {
 }
 
 func (wm *WhitelistManager) HasPlayer(name string, xuid string) bool {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+
 	for player_name, player_xuid := range wm.Players {
 		if strings.EqualFold(player_xuid, xuid) {
 			if !strings.EqualFold(player_name, name) {
@@ -52,7 +60,6 @@ func (wm *WhitelistManager) HasPlayer(name string, xuid string) bool {
 				wm.Players[name] = xuid
 				wm.save()
 			}
-
 			return true
 		}
 
@@ -61,7 +68,6 @@ func (wm *WhitelistManager) HasPlayer(name string, xuid string) bool {
 				wm.Players[player_name] = xuid
 				wm.save()
 			}
-
 			return true
 		}
 	}
@@ -69,50 +75,21 @@ func (wm *WhitelistManager) HasPlayer(name string, xuid string) bool {
 	return false
 }
 
-func (wm *WhitelistManager) HasPlayerName(name string) bool {
-	for player_name := range wm.Players {
-		if strings.EqualFold(player_name, name) {
-			return true
-		}
-	}
-
-	return false
-}
-
+// save saves the whitelist to the whitelist.json file, mutex must be held by the calling function.
 func (wm *WhitelistManager) save() {
 	file, err := os.Create("whitelist.json")
 	if err != nil {
-		log.Logger.Fatalf("error reading whitelist: %v", err)
+		log.Logger.Fatalf("error creating whitelist file: %v", err)
 	}
 
-	p, err := json.MarshalIndent(wm, "", "\t")
+	p, err := json.MarshalIndent(wm.Players, "", "\t")
 	if err != nil {
-		log.Logger.Fatalf("error marshal whitelist: %v", err)
+		log.Logger.Fatalf("error marshaling whitelist: %v", err)
 	}
 
 	_, err = file.Write(p)
 	if err != nil {
-		log.Logger.Fatalf("error write whitelist: %v", err)
+		log.Logger.Fatalf("error writing whitelist: %v", err)
 	}
 	file.Close()
-}
-
-func (wm *WhitelistManager) AddPlayer(name string) bool {
-	if wm.HasPlayerName(name) {
-		return false
-	}
-
-	wm.Players[strings.ToLower(name)] = "none"
-	wm.save()
-	return true
-}
-
-func (wm *WhitelistManager) RemovePlayer(name string) bool {
-	if !wm.HasPlayerName(name) {
-		return false
-	}
-
-	delete(wm.Players, strings.ToLower(name))
-	wm.save()
-	return true
 }
