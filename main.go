@@ -35,16 +35,12 @@ func loadHandlers() handler.HandlerManager {
 	h.RegisterHandler(packet.IDCommandRequest, custom_handlers.CommandRequestHandler{})
 	h.RegisterHandler(packet.IDBlockActorData, custom_handlers.SignEditHandler{})
 	h.RegisterHandler(packet.IDInventoryTransaction, custom_handlers.ClaimInventoryTransactionHandler{})
+	h.RegisterHandler(packet.IDPlayerAuthInput, custom_handlers.ClaimPlayerAuthInputHandler{})
 	h.RegisterHandler(packet.IDText, custom_handlers.CustomCommandRegisterHandler{})
-	h.RegisterHandler(packet.IDDisconnect, custom_handlers.DisconnectHandler{})
 	h.RegisterHandler(packet.IDItemComponent, custom_handlers.ItemComponentHandler{})
 	h.RegisterHandler(packet.IDContainerOpen, custom_handlers.OpenContainerHandler{})
 	h.RegisterHandler(packet.IDContainerClose, custom_handlers.ContainerCloseHandler{})
-	h.RegisterHandler(packet.IDInventoryContent, custom_handlers.InventoryContentHandler{})
-	h.RegisterHandler(packet.IDInventorySlot, custom_handlers.InventorySlotHandler{})
 	h.RegisterHandler(packet.IDItemStackRequest, custom_handlers.ItemStackRequestHandler{})
-	h.RegisterHandler(packet.IDItemStackResponse, custom_handlers.ItemStackResponseHandler{})
-	h.RegisterHandler(packet.IDAddItemActor, custom_handlers.AddItemActorHandler{})
 	h.RegisterHandler(packet.IDPlayerList, custom_handlers.PlayerListHandler{})
 
 	return h

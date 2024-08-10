@@ -29,13 +29,3 @@ func (ContainerCloseHandler) Handle(pk packet.Packet, player human.Human) (bool,
 
 	return true, dataPacket, nil
 }
-
-type AddItemActorHandler struct{}
-
-func (AddItemActorHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
-	dataPacket := pk.(*packet.AddItemActor)
-
-	//log.Println("Player has added an item actor", dataPacket)
-
-	return true, dataPacket, nil
-}
