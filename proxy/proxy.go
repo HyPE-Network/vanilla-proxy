@@ -254,7 +254,7 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	playerLastLocation := player.GetData().LastUpdatedLocation
 	lastLocationString := fmt.Sprintf("X: %f, Y: %f, Z: %f", playerLastLocation.X(), playerLastLocation.Y(), playerLastLocation.Z())
 
-	if openContainerId != 0 {
+	if openContainerId != 0 && len(itemInContainers) > 0 {
 		log.Logger.Println(player.GetName(), "has open container:", openContainerId, "while disconnecting, *prob trying to dupe*", lastLocationString)
 
 		utils.SendStaffAlertToDiscord("Disconnect with open container!", "A Player Has disconnected with an open container, please investigate!", 16711680, []map[string]interface{}{
