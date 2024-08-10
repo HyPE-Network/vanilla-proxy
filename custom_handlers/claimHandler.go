@@ -1,8 +1,7 @@
 package custom_handlers
 
 import (
-	"log"
-
+	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
@@ -38,7 +37,7 @@ func FetchClaims() error {
 	}
 
 	RegisteredClaims = claims
-	log.Printf("Loaded %d claims from the database\n", len(RegisteredClaims))
+	log.Logger.Printf("Loaded %d claims from the database\n", len(RegisteredClaims))
 
 	return nil
 }

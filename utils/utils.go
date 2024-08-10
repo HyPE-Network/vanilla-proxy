@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/HyPE-Network/vanilla-proxy/log"
 )
 
 func Format(a []any) string {
@@ -69,11 +70,11 @@ func FetchDatabase[T any](tableName string) (map[string]T, error) {
 
 	uri := dbConfig.Host + "/api/database/" + dbConfig.Name + "/table/" + tableName
 
-	log.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)
+	log.Logger.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
-		log.Fatalln("Failed to create new request:", err)
+		log.Logger.Fatalln("Failed to create new request:", err)
 		return nil, err
 	}
 
@@ -122,7 +123,7 @@ func FetchDatabase[T any](tableName string) (map[string]T, error) {
 
 func LogErrorToDiscord(err error) {
 	config := ReadConfig()
-	log.Println("Error:", err)
+	log.Logger.Println("Error:", err)
 	params := map[string]interface{}{
 		"username":   fmt.Sprintf("[%s] Failed to Ping Database", config.Server.Prefix),
 		"avatar_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGcSsrxGsP-WcwrSPJCalNokgnVFtho64ycreClTns3g&s",
@@ -151,7 +152,7 @@ func LogErrorToDiscord(err error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Failed to send logs to discord", err)
+		log.Logger.Println("Failed to send logs to discord", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -176,12 +177,12 @@ func SendStaffAlertToDiscord(title string, description string, color int, fields
 
 	jsonParams, err := json.Marshal(params)
 	if err != nil {
-		log.Println("Failed to marshal json", err)
+		log.Logger.Println("Failed to marshal json", err)
 		return
 	}
 	req, err := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
 	if err != nil {
-		log.Println("Failed to create new request", err)
+		log.Logger.Println("Failed to create new request", err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -189,7 +190,7 @@ func SendStaffAlertToDiscord(title string, description string, color int, fields
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Failed to send staff alert to discord", err)
+		log.Logger.Println("Failed to send staff alert to discord", err)
 		return
 	}
 	defer resp.Body.Close()

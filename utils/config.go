@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"log"
 	"os"
 
+	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/pelletier/go-toml"
 )
 
@@ -60,29 +60,29 @@ func ReadConfig() Config {
 	}
 
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
-		log.Println("config.toml not found, creating default config...")
+		log.Logger.Println("config.toml not found, creating default config...")
 		f, err := os.Create("config.toml")
 		if err != nil {
-			log.Fatalf("error creating config: %v", err)
+			log.Logger.Fatalf("error creating config: %v", err)
 		}
 		data, err := toml.Marshal(defaultConfig)
 		if err != nil {
-			log.Fatalf("error encoding default config: %v", err)
+			log.Logger.Fatalf("error encoding default config: %v", err)
 		}
 		if _, err := f.Write(data); err != nil {
-			log.Fatalf("error writing encoded default config: %v", err)
+			log.Logger.Fatalf("error writing encoded default config: %v", err)
 		}
 		_ = f.Close()
 	}
 
 	data, err := os.ReadFile("config.toml")
 	if err != nil {
-		log.Fatalf("error reading config: %v", err)
+		log.Logger.Fatalf("error reading config: %v", err)
 	}
 
 	c := Config{}
 	if err := toml.Unmarshal(data, &c); err != nil {
-		log.Fatalf("error decoding config: %v", err)
+		log.Logger.Fatalf("error decoding config: %v", err)
 	}
 
 	// Validate required fields and set defaults if necessary

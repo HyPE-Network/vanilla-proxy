@@ -1,8 +1,7 @@
 package command
 
 import (
-	"log"
-
+	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -210,7 +209,7 @@ func mergeUniqueDynamicEnumsWithIndexMaps(slice1, slice2 []protocol.DynamicEnum)
 	for i, item := range slice1 {
 		if idx, exists := uniqueMap[item.Type]; exists {
 			// Already exists, merge the values and map previous index to this.
-			log.Println("Duplicate dynamic enum type in 'slice1': ", item.Type)
+			log.Logger.Println("Duplicate dynamic enum type in 'slice1': ", item.Type)
 			indexMap1[uint(i)] = idx
 			mergedValues, _, _ := mergeUniqueStrings(uniqueSlice[idx].Values, item.Values)
 			uniqueSlice[idx].Values = mergedValues
@@ -225,7 +224,7 @@ func mergeUniqueDynamicEnumsWithIndexMaps(slice1, slice2 []protocol.DynamicEnum)
 
 	for i, item := range slice2 {
 		if idx, exists := uniqueMap[item.Type]; exists {
-			log.Println("Duplicate dynamic enum type in 'slice2': ", item.Type)
+			log.Logger.Println("Duplicate dynamic enum type in 'slice2': ", item.Type)
 			indexMap2[uint(i)] = idx
 			// Merge the current dynamic enum values with this one.
 			mergedValues, _, _ := mergeUniqueStrings(uniqueSlice[idx].Values, item.Values)
