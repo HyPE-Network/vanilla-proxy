@@ -30,6 +30,7 @@ func Init() (*PlayerlistManager, error) {
 	}
 
 	plm.mu.Lock()
+	defer plm.mu.Unlock()
 
 	// Create a file lock
 	lock := flock.New("playerlist.json.lock")
@@ -78,8 +79,6 @@ func Init() (*PlayerlistManager, error) {
 		}
 	}
 
-	plm.mu.Unlock()
-
 	return plm, nil
 }
 
@@ -91,6 +90,7 @@ func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) (login.I
 	xuid := identityData.XUID
 
 	if player, ok := plm.Players[xuid]; ok {
+		plm.mu.Unlock()
 		return login.IdentityData{
 			XUID:        xuid,
 			DisplayName: player.PlayerName,
@@ -99,7 +99,7 @@ func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) (login.I
 		}, nil
 	}
 
-	plm.mu.Unlock()
+	plm.mu.Unlock() // Unlock the mutex before calling SetPlayer
 
 	if err := plm.SetPlayer(xuid, conn); err != nil {
 		return login.IdentityData{}, err
@@ -116,10 +116,12 @@ func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) (login.Cli
 
 	if player, ok := plm.Players[xuid]; ok {
 		clientData.SelfSignedID = player.ClientSelfSignedID
+
+		plm.mu.Unlock()
 		return clientData, nil
 	}
 
-	plm.mu.Unlock()
+	plm.mu.Unlock() // Unlock the mutex before calling SetPlayer
 
 	if err := plm.SetPlayer(xuid, conn); err != nil {
 		return login.ClientData{}, err
@@ -130,6 +132,7 @@ func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) (login.Cli
 // GetXUIDFromName returns the XUID of a player by their name
 func (plm *PlayerlistManager) GetXUIDFromName(playerName string) (string, error) {
 	plm.mu.Lock()
+	defer plm.mu.Unlock()
 
 	for xuid, player := range plm.Players {
 		if player.PlayerName == playerName {
@@ -137,27 +140,25 @@ func (plm *PlayerlistManager) GetXUIDFromName(playerName string) (string, error)
 		}
 	}
 
-	plm.mu.Unlock()
-
 	return "", errors.New("player not found")
 }
 
 // GetPlayer returns a player from the playerlist by their XUID
 func (plm *PlayerlistManager) GetPlayer(xuid string) (Player, error) {
 	plm.mu.Lock()
+	defer plm.mu.Unlock()
 
 	player, ok := plm.Players[xuid]
 	if !ok {
 		return Player{}, errors.New("player not found")
 	}
 
-	plm.mu.Unlock()
-
 	return player, nil
 }
 
 func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) error {
 	plm.mu.Lock()
+	defer plm.mu.Unlock()
 
 	player := Player{
 		PlayerName:         conn.IdentityData().DisplayName,
@@ -198,8 +199,6 @@ func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) error
 		log.Logger.Errorf("error writing playerlist: %v", err)
 		return err
 	}
-
-	plm.mu.Unlock()
 
 	return nil
 }
