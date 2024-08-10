@@ -115,15 +115,28 @@ func canPreformActionInClaim(player human.Human, claim IPlayerClaim, action stri
 	return false
 }
 
-// type ClaimAuthPlayerInputHandler struct{}
+type ClaimPlayerAuthInputHandler struct{}
 
-// func (ClaimAuthPlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
-// 	dataPacket := pk.(*packet.PlayerAuthInput)
+func (ClaimPlayerAuthInputHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
+	dataPacket := pk.(*packet.PlayerAuthInput)
 
-// 	// If a player is trying to attack something, verify the claim
+	// Loop through block actions, and check if player can interact with block
+	for _, blockAction := range dataPacket.BlockActions {
+		claim := getClaimAt(player.GetData().GameData.Dimension, int32(blockAction.BlockPos.X()), int32(blockAction.BlockPos.Z()))
+		if claim.ClaimId == "" {
+			continue
+		}
+		actionName := "interactWithBlock"
+		if blockAction.Action == 1 {
+			actionName = "breakBlock"
+		}
+		if !canPreformActionInClaim(player, claim, actionName) {
+			return false, pk, nil
+		}
+	}
 
-// 	return true, pk, nil
-// }
+	return true, pk, nil
+}
 
 type ClaimInventoryTransactionHandler struct {
 }
