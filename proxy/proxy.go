@@ -49,14 +49,11 @@ func New(config utils.Config) *Proxy {
 	Proxy := &Proxy{
 		Config:            config,
 		PlayerListManager: playerListManager,
+		WhitelistManager:  whitelist.Init(),
 	}
 
 	if config.WorldBorder.Enabled {
 		Proxy.Worlds = world.Init(math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ))
-	}
-
-	if config.Server.Whitelist {
-		Proxy.WhitelistManager = whitelist.Init()
 	}
 
 	return Proxy
