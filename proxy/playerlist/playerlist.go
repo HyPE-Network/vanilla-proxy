@@ -2,124 +2,159 @@ package playerlist
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
 	"os"
+	"sync"
 
+	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/gofrs/flock"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 )
 
 type Player struct {
-	// The player's name they connected with
-	PlayerName string `json:"playerName"`
-	// The player's identity they connected with, this was the first UUID they connected with
-	Identity string `json:"identity"`
-	// The player's self-signed ID, this needs to be set every time the player joins
-	// Because it is what BDS uses to generate a ID from.
-	// So if a player switches devices, we want them to use the same ID.
+	PlayerName         string `json:"playerName"`
+	Identity           string `json:"identity"`
 	ClientSelfSignedID string `json:"clientSelfSignedID"`
 }
 
 type PlayerlistManager struct {
-	// A map of player XUIDs to their identity data
+	mu      sync.Mutex
 	Players map[string]Player `json:"players"`
 }
 
 // Init initializes the playerlist manager
-func Init() *PlayerlistManager {
+func Init() (*PlayerlistManager, error) {
 	plm := &PlayerlistManager{
 		Players: make(map[string]Player),
 	}
 
-	if _, err := os.Stat("playerlist.json"); os.IsNotExist(err) {
-		f, err := os.Create("playerlist.json")
-		if err != nil {
-			log.Fatalf("error creating playerlist: %v", err)
-		}
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
+	// Create a file lock
+	lock := flock.New("playerlist.json.lock")
+	if err := lock.Lock(); err != nil {
+		log.Logger.Errorf("error locking playerlist file: %v", err)
+		return nil, err
+	}
+	defer lock.Unlock()
+
+	// Open or create the playerlist.json file
+	file, err := os.OpenFile("playerlist.json", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Logger.Errorf("error opening/creating playerlist: %v", err)
+		return nil, err
+	}
+	defer file.Close()
+
+	// Check if the file is empty (newly created)
+	info, err := file.Stat()
+	if err != nil {
+		log.Logger.Errorf("error stating playerlist file: %v", err)
+		return nil, err
+	}
+	if info.Size() == 0 {
 		data, err := json.Marshal(plm.Players)
 		if err != nil {
-			log.Fatalf("error encoding default playerlist: %v", err)
+			log.Logger.Errorf("error encoding default playerlist: %v", err)
+			return nil, err
 		}
-		if _, err := f.Write(data); err != nil {
-			log.Fatalf("error writing encoded default playerlist: %v", err)
+		if _, err := file.Write(data); err != nil {
+			log.Logger.Errorf("error writing encoded default playerlist: %v", err)
+			return nil, err
 		}
-		_ = f.Close()
+	} else {
+		// Read the existing data from the file
+		data := make([]byte, info.Size())
+		if _, err := file.Read(data); err != nil {
+			log.Logger.Errorf("error reading playerlist: %v", err)
+			return nil, err
+		}
+
+		// Unmarshal the data into the player map
+		if err := json.Unmarshal(data, &plm.Players); err != nil {
+			log.Logger.Errorf("error decoding playerlist: %v", err)
+			return nil, err
+		}
 	}
 
-	data, err := os.ReadFile("playerlist.json")
-	if err != nil {
-		log.Fatalf("error reading playerlist: %v", err)
-	}
-
-	tempPlayers := make(map[string]Player)
-	if err := json.Unmarshal(data, &tempPlayers); err != nil {
-		log.Fatalf("error decoding playerlist: %v", err)
-	}
-
-	// Merge tempPlayers into the existing Players map
-	for xuid, player := range tempPlayers {
-		plm.Players[xuid] = player
-	}
-
-	return plm
+	return plm, nil
 }
 
 // GetConnIdentityData returns the identity data for a player's connection
-func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) login.IdentityData {
+func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) (login.IdentityData, error) {
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
 	identityData := conn.IdentityData()
 	xuid := identityData.XUID
 
-	// If the player is in the playerlist, return the identity data that is stored
 	if player, ok := plm.Players[xuid]; ok {
 		return login.IdentityData{
 			XUID:        xuid,
 			DisplayName: player.PlayerName,
 			Identity:    player.Identity,
 			TitleID:     identityData.TitleID,
-		}
+		}, nil
 	}
 
-	// Set the player in the playerlist and return the identity data from the connection
-	plm.SetPlayer(xuid, conn)
-
-	// If the player is not in the playerlist, return the identity data from the connection
-	return identityData
+	if err := plm.SetPlayer(xuid, conn); err != nil {
+		return login.IdentityData{}, err
+	}
+	return identityData, nil
 }
 
 // GetConnClientData returns the client data for a player's connection
-func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) login.ClientData {
+func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) (login.ClientData, error) {
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
 	xuid := conn.IdentityData().XUID
 	clientData := conn.ClientData()
 
-	// If the player is in the playerlist, return the client data that is stored
 	if player, ok := plm.Players[xuid]; ok {
 		clientData.SelfSignedID = player.ClientSelfSignedID
-		return clientData
+		return clientData, nil
 	}
 
-	// Set the player in the playerlist and return the identity data from the connection
-	plm.SetPlayer(xuid, conn)
-
-	// If the player is not in the playerlist, return the identity data from the connection
-	return clientData
+	if err := plm.SetPlayer(xuid, conn); err != nil {
+		return login.ClientData{}, err
+	}
+	return clientData, nil
 }
 
 // GetXUIDFromName returns the XUID of a player by their name
-func (plm *PlayerlistManager) GetXUIDFromName(playerName string) string {
+func (plm *PlayerlistManager) GetXUIDFromName(playerName string) (string, error) {
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
 	for xuid, player := range plm.Players {
 		if player.PlayerName == playerName {
-			return xuid
+			return xuid, nil
 		}
 	}
-	return ""
+
+	return "", errors.New("player not found")
 }
 
 // GetPlayer returns a player from the playerlist by their XUID
-func (plm *PlayerlistManager) GetPlayer(xuid string) Player {
-	return plm.Players[xuid]
+func (plm *PlayerlistManager) GetPlayer(xuid string) (Player, error) {
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
+	player, ok := plm.Players[xuid]
+	if !ok {
+		return Player{}, errors.New("player not found")
+	}
+
+	return player, nil
 }
 
-func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) {
+func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) error {
+	plm.mu.Lock()
+	defer plm.mu.Unlock()
+
 	player := Player{
 		PlayerName:         conn.IdentityData().DisplayName,
 		Identity:           conn.IdentityData().Identity,
@@ -127,12 +162,33 @@ func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) {
 	}
 	plm.Players[xuid] = player
 
+	// Create a file lock
+	lock := flock.New("playerlist.json.lock")
+	if err := lock.Lock(); err != nil {
+		log.Logger.Errorf("error locking playerlist file: %v", err)
+		return err
+	}
+	defer lock.Unlock()
+
 	// Save the playerlist to disk
 	data, err := json.MarshalIndent(plm.Players, "", "  ")
 	if err != nil {
-		log.Fatalf("error encoding playerlist: %v", err)
+		log.Logger.Errorf("error encoding playerlist: %v", err)
+		return err
 	}
-	if err := os.WriteFile("playerlist.json", data, 0644); err != nil {
-		log.Fatalf("error writing playerlist: %v", err)
+
+	// Open the file for writing
+	file, err := os.OpenFile("playerlist.json", os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Logger.Errorf("error opening playerlist for writing: %v", err)
+		return err
 	}
+	defer file.Close()
+
+	if _, err := file.Write(data); err != nil {
+		log.Logger.Errorf("error writing playerlist: %v", err)
+		return err
+	}
+
+	return nil
 }

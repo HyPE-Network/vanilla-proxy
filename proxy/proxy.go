@@ -40,7 +40,10 @@ type Proxy struct {
 }
 
 func New(config utils.Config) *Proxy {
-	playerListManager := playerlist.Init()
+	playerListManager, err := playerlist.Init()
+	if err != nil {
+		log.Logger.Fatalln("Error in initializing playerListManager: ", err)
+	}
 
 	Proxy := &Proxy{
 		Config:            config,
@@ -133,8 +136,18 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}
 
-	clientData := arg.PlayerListManager.GetConnClientData(conn)
-	identityData := arg.PlayerListManager.GetConnIdentityData(conn)
+	clientData, err := arg.PlayerListManager.GetConnClientData(conn)
+	if err != nil {
+		log.Logger.Errorln("Error in getting clientData: ", err)
+		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
+		return
+	}
+	identityData, err := arg.PlayerListManager.GetConnIdentityData(conn)
+	if err != nil {
+		log.Logger.Errorln("Error in getting identityData: ", err)
+		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
+		return
+	}
 
 	serverConn, err := minecraft.Dialer{
 		KeepXBLIdentityData: true,
@@ -194,6 +207,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
+				log.Logger.Errorln("Failed to read Packet from Client", err)
 				return
 			}
 
