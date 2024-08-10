@@ -29,8 +29,12 @@ func Init() (*PlayerlistManager, error) {
 		Players: make(map[string]Player),
 	}
 
+	log.Logger.Debugln("Attempting to acquire lock for Init")
 	plm.mu.Lock()
-	defer plm.mu.Unlock()
+	defer func() {
+		log.Logger.Debugln("Releasing lock from Init")
+		plm.mu.Unlock()
+	}()
 
 	// Create a file lock
 	lock := flock.New("playerlist.json.lock")
@@ -84,10 +88,10 @@ func Init() (*PlayerlistManager, error) {
 
 // GetConnIdentityData returns the identity data for a player's connection
 func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) (login.IdentityData, error) {
-	log.Logger.Infoln("Attempting to acquire lock in GetConnIdentityData for", conn.IdentityData().XUID)
+	log.Logger.Debugln("Attempting to acquire lock in GetConnIdentityData for", conn.IdentityData().XUID)
 	plm.mu.Lock()
 	defer func() {
-		log.Logger.Infoln("Releasing lock in GetConnIdentityData for", conn.IdentityData().XUID)
+		log.Logger.Debugln("Releasing lock in GetConnIdentityData for", conn.IdentityData().XUID)
 		plm.mu.Unlock()
 	}()
 
@@ -111,10 +115,10 @@ func (plm *PlayerlistManager) GetConnIdentityData(conn *minecraft.Conn) (login.I
 
 // GetConnClientData returns the client data for a player's connection
 func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) (login.ClientData, error) {
-	log.Logger.Infoln("Attempting to acquire lock in GetConnClientData for", conn.IdentityData().XUID)
+	log.Logger.Debugln("Attempting to acquire lock in GetConnClientData for", conn.IdentityData().XUID)
 	plm.mu.Lock()
 	defer func() {
-		log.Logger.Infoln("Releasing lock in GetConnClientData for", conn.IdentityData().XUID)
+		log.Logger.Debugln("Releasing lock in GetConnClientData for", conn.IdentityData().XUID)
 		plm.mu.Unlock()
 	}()
 
@@ -134,8 +138,12 @@ func (plm *PlayerlistManager) GetConnClientData(conn *minecraft.Conn) (login.Cli
 
 // GetXUIDFromName returns the XUID of a player by their name
 func (plm *PlayerlistManager) GetXUIDFromName(playerName string) (string, error) {
+	log.Logger.Debugln("Attempting to acquire lock in GetXUIDFromName for", playerName)
 	plm.mu.Lock()
-	defer plm.mu.Unlock()
+	defer func() {
+		log.Logger.Debugln("Releasing lock in GetXUIDFromName for", playerName)
+		plm.mu.Unlock()
+	}()
 
 	for xuid, player := range plm.Players {
 		if player.PlayerName == playerName {
@@ -148,8 +156,12 @@ func (plm *PlayerlistManager) GetXUIDFromName(playerName string) (string, error)
 
 // GetPlayer returns a player from the playerlist by their XUID
 func (plm *PlayerlistManager) GetPlayer(xuid string) (Player, error) {
+	log.Logger.Debugln("Attempting to acquire lock in GetPlayer for", xuid)
 	plm.mu.Lock()
-	defer plm.mu.Unlock()
+	defer func() {
+		log.Logger.Debugln("Releasing lock in GetPlayer for", xuid)
+		plm.mu.Unlock()
+	}()
 
 	player, ok := plm.Players[xuid]
 	if !ok {
@@ -160,8 +172,12 @@ func (plm *PlayerlistManager) GetPlayer(xuid string) (Player, error) {
 }
 
 func (plm *PlayerlistManager) SetPlayer(xuid string, conn *minecraft.Conn) error {
+	log.Logger.Debugln("Attempting to acquire lock in SetPlayer for", xuid)
 	plm.mu.Lock()
-	defer plm.mu.Unlock()
+	defer func() {
+		log.Logger.Debugln("Releasing lock in SetPlayer for", xuid)
+		plm.mu.Unlock()
+	}()
 
 	player := Player{
 		PlayerName:         conn.IdentityData().DisplayName,
