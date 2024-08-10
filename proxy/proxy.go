@@ -21,6 +21,7 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 	"github.com/google/uuid"
 
+	"github.com/sandertv/go-raknet"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 	"github.com/sandertv/gophertunnel/minecraft/resource"
@@ -65,6 +66,17 @@ func New(config utils.Config) *Proxy {
 func (arg *Proxy) Start(h handler.HandlerManager) error {
 	arg.Handlers = h
 
+	res, err := raknet.Ping(arg.Config.Connection.RemoteAddress)
+	if err != nil {
+		// Server prob not online, retrying
+		log.Logger.Errorln("Failed to ping server, retrying in 5 seconds:", err)
+		time.Sleep(time.Second * 5)
+		arg.Start(h)
+		return nil
+	}
+	// Server is online, parse data
+	status := minecraft.ParsePongData(res)
+	log.Logger.Infoln("Server", status.ServerName, "is online with MOTD", status.ServerSubName)
 	p, err := minecraft.NewForeignStatusProvider(arg.Config.Connection.RemoteAddress)
 	if err != nil {
 		return err
