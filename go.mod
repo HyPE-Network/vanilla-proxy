@@ -9,6 +9,7 @@ require (
 	github.com/gofrs/flock v0.12.1
 	github.com/google/uuid v1.6.0
 	github.com/pelletier/go-toml v1.9.5
+	github.com/sandertv/go-raknet v1.14.1
 	github.com/sandertv/gophertunnel v1.39.3
 	github.com/sirupsen/logrus v1.9.3
 )
@@ -19,7 +20,6 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0 // indirect
-	github.com/sandertv/go-raknet v1.14.1 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
@@ -30,4 +30,4 @@ require (
 
 replace github.com/sandertv/go-raknet => github.com/hashimthearab/go-raknet v1.14.2-0.20240712204703-9b99c862e9db
 
-replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240809203936-20578233f951
+replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240810191223-3534e6bcacac
