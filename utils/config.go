@@ -13,6 +13,7 @@ type Config struct {
 		RemoteAddress string
 	}
 	Server struct {
+		SecuredSlots    int
 		ViewDistance    int32
 		Whitelist       bool
 		DisableXboxAuth bool

@@ -129,11 +129,32 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 
 // handleConn handles a new incoming minecraft.Conn from the minecraft.Listener passed.
 func (arg *Proxy) handleConn(conn *minecraft.Conn) {
+	playerWhitelisted := arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID)
 	if arg.Config.Server.Whitelist {
-		if !arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID) {
+		if !playerWhitelisted {
 			arg.Listener.Disconnect(conn, "You are not whitelisted on this server!")
 			return
 		}
+	}
+
+	res, err := raknet.Ping(arg.Config.Connection.RemoteAddress)
+	if err != nil {
+		// Server just went offline while player was connecting
+		arg.Listener.Disconnect(conn, "Server just went offline, please try again later!")
+		return
+	}
+	// Server is online, fetch data
+	status := minecraft.ParsePongData(res)
+	if status.PlayerCount >= status.MaxPlayers-arg.Config.Server.SecuredSlots {
+		if playerWhitelisted && status.PlayerCount >= status.MaxPlayers {
+			// Player is whitelisted, but all secured slots are taken too, so we can't let them in
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though you have priority access, all secured slots are taken! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
+			return
+		} else if !playerWhitelisted {
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Server is full, please try again later! (%d/%d)", status.PlayerCount, status.MaxPlayers))
+			return
+		}
+		// Player is whitelisted and there are secured slots available, let them in
 	}
 
 	clientData, err := arg.PlayerListManager.GetConnClientData(conn)

@@ -23,6 +23,7 @@
   PackPaths = []
 
 [Server]
+  SecuredSlots = 5
   DisableXboxAuth = false
   Prefix = "TESTING"
   ViewDistance = 10

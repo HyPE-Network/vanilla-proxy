@@ -10,6 +10,7 @@ Vanilla Proxy is a simple proxy servers that enabled Packet management and prote
 4. You can set the boards of the world. Blocks outside the border will not be displayed to the player. The coordinates of the corner must be divided by 16 so that the borders are displayed correctly.
 5. Support for a whitelist that can store the player's xbox id(xuid).
 6. A Player List manager that stores a players `SelfSignedID` ensuring as long as a player is signed into a XBL account, they wont get there player reset.
+7. A priority slot system, that allows you to block off specific slots to be restricted for certain players in whitelist.
 
 ## Getting Started
 
@@ -75,6 +76,7 @@ This is still a work in progress feature, however this configuration can allow u
 
 Server holds less essential server configuration that changes connection aspects.
 
+- `SecuredSlots` - A count of how many slots to reduce from BDS max player count, that will be reserved for players in the whitelist allowing a priority slot system.
 - `DisableXboxAuth` - specifies if authentication of players that join is disabled. If set to true, no verification will be done to ensure that the player connecting is authenticated using their XBOX Live account.
 - `Prefix` - Prefix is used to specify the current server in error logs. For example `TESTING` would be sent with a logging endpoint to tell readers this came from `TESTING` server.
 - `ViewDistance` - Manages the distance players can view through the chunk handler. This is important for large servers.
