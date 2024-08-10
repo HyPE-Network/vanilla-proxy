@@ -252,7 +252,7 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	openContainerId := player.GetData().OpenContainerWindowId
 	itemInContainers := player.GetData().ItemsInContainers
 	playerLastLocation := player.GetData().LastUpdatedLocation
-	lastLocationString := fmt.Sprintf("X: %f, Y: %f, Z: %f", playerLastLocation.X(), playerLastLocation.Y(), playerLastLocation.Z())
+	lastLocationString := fmt.Sprintf("[%d, %d, %d]", int(playerLastLocation.X()), int(playerLastLocation.Y()), int(playerLastLocation.Z()))
 
 	if openContainerId != 0 && len(itemInContainers) > 0 {
 		log.Logger.Println(player.GetName(), "has open container:", openContainerId, "while disconnecting, *prob trying to dupe*", lastLocationString)
@@ -260,17 +260,17 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 		utils.SendStaffAlertToDiscord("Disconnect with open container!", "A Player Has disconnected with an open container, please investigate!", 16711680, []map[string]interface{}{
 			{
 				"name":   "Player Name",
-				"value":  player.GetName(),
-				"inline": true,
-			},
-			{
-				"name":   "Container Type",
-				"value":  openContainerId,
+				"value":  "```" + player.GetName() + "```",
 				"inline": true,
 			},
 			{
 				"name":   "Player Location",
-				"value":  lastLocationString,
+				"value":  "```" + lastLocationString + "```",
+				"inline": true,
+			},
+			{
+				"name":   "Item Count",
+				"value":  "```" + fmt.Sprintf("%d", len(itemInContainers)) + "```",
 				"inline": true,
 			},
 		})
@@ -309,17 +309,17 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 		utils.SendStaffAlertToDiscord("Disconnecting With Item", "A Player Has disconnected with a item in ContainerCombinedHotBarAndInventory, please investigate!", 16711680, []map[string]interface{}{
 			{
 				"name":   "Player Name",
-				"value":  player.GetName(),
+				"value":  "```" + player.GetName() + "```",
 				"inline": true,
 			},
 			{
 				"name":   "Stack Network ID",
-				"value":  cursorItem.StackNetworkID,
+				"value":  "```" + fmt.Sprintf("%d", cursorItem.StackNetworkID) + "```",
 				"inline": true,
 			},
 			{
 				"name":   "Player Location",
-				"value":  lastLocationString,
+				"value":  "```" + lastLocationString + "```",
 				"inline": true,
 			},
 		})
