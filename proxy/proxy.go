@@ -251,7 +251,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 				var disc minecraft.DisconnectError
 				if ok := errors.As(err, &disc); ok {
 					arg.DisconnectPlayer(player, disc.Error())
-				} else {
+				} else if !strings.Contains(err.Error(), "use of closed network connection") {
 					// Error is not a disconnect error, so log the error.
 					log.Logger.Errorln("Failed to read Packet from Client", err)
 				}
@@ -289,7 +289,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 				var disc minecraft.DisconnectError
 				if ok := errors.As(err, &disc); ok {
 					arg.DisconnectPlayer(player, disc.Error())
-				} else {
+				} else if !strings.Contains(err.Error(), "use of closed network connection") {
 					log.Logger.Errorln("Failed to read Packet from Server", err)
 				}
 				return
