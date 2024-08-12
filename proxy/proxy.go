@@ -105,6 +105,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		StatusProvider:         p,
 		ResourcePacks:          resourcePacks,
 		TexturePacksRequired:   true,
+		ErrorLog:               log.Logger,
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
 	if err != nil {
@@ -186,6 +187,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		DownloadResourcePack: func(id uuid.UUID, version string, current int, total int) bool {
 			return false
 		},
+		ErrorLog: log.Logger,
 	}.DialTimeout("raknet", arg.Config.Connection.RemoteAddress, time.Second*120)
 
 	if err != nil {
