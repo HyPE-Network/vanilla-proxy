@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
@@ -86,6 +88,10 @@ func (hm handlerManager) HandlePacket(pk packet.Packet, player human.Human, send
 		sendDebug(pk, sender)
 	}
 
+	if hm.PacketHandlers == nil {
+		return false, pk, fmt.Errorf("packet handlers map is nil")
+	}
+
 	packetHandlers, hasHandler := hm.PacketHandlers[pk.ID()]
 	if hasHandler {
 		for _, packetHandler := range packetHandlers {
@@ -93,6 +99,9 @@ func (hm handlerManager) HandlePacket(pk packet.Packet, player human.Human, send
 				sendPacket, pk, err = packetHandler.Handle(pk, player)
 			} else {
 				_, pk, err = packetHandler.Handle(pk, player)
+			}
+			if err != nil {
+				return false, pk, err
 			}
 		}
 	}
