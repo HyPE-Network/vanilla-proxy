@@ -104,6 +104,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		ResourcePacks:          resourcePacks,
 		TexturePacksRequired:   true,
 		ErrorLog:               log.Logger,
+		Compression:            packet.FlateCompression,
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
 	if err != nil {
