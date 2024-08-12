@@ -244,7 +244,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 			pk, err := conn.ReadPacket()
 			if err != nil {
 				var disc minecraft.DisconnectError
-				if ok := errors.As(err, &disc); !ok {
+				if ok := errors.As(err, &disc); ok {
+					arg.DisconnectPlayer(player, disc.Error())
+				} else {
 					// Error is not a disconnect error, so log the error.
 					log.Logger.Errorln("Failed to read Packet from Client", err)
 				}
