@@ -250,7 +250,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 					// Error is not a disconnect error, so log the error.
 					log.Logger.Errorln("Failed to read Packet from Client", err)
 				}
-				return
 			}
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
@@ -278,8 +277,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 				var disc minecraft.DisconnectError
 				if ok := errors.As(err, &disc); ok {
 					arg.DisconnectPlayer(player, disc.Error())
+				} else {
+					log.Logger.Errorln("Failed to read Packet from Server", err)
 				}
-				log.Logger.Errorln("Failed to read Packet from Server", err)
 				return
 			}
 

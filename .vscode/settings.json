@@ -4,6 +4,7 @@
         "Errorln",
         "gophertunnel",
         "Infoln",
+        "logrus",
         "playerlist",
         "pokeb",
         "raknet",
