@@ -160,8 +160,13 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 			// Player is whitelisted, but all secured slots are taken too, so we can't let them in
 			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though you have priority access, all secured slots are taken! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
 			return
+		} else if !playerWhitelisted && status.PlayerCount < status.MaxPlayers {
+			// Player is not whitelisted, but the server is full to non whitelisted players.
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though the server is not full, the remaining slots are reserved for our staff! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
+			return
 		} else if !playerWhitelisted {
-			arg.Listener.Disconnect(conn, fmt.Sprintf("Server is full, please try again later! (%d/%d)", status.PlayerCount, status.MaxPlayers))
+			// Player is not whitelisted and the server is completely full.
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, the server is full, please try again later! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
 			return
 		}
 		// Player is whitelisted and there are secured slots available, let them in
