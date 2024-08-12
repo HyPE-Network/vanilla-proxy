@@ -18,18 +18,18 @@ func main() {
 
 	proxy.ProxyInstance = proxy.New(config)
 
-	err := proxy.ProxyInstance.Start(loadHandlers)
+	err := proxy.ProxyInstance.Start(loadHandlers())
 	if err != nil {
-		log.Logger.Errorln("Error while starting server: ", err)
-		panic(err)
+		log.Logger.Panicln("Error while starting server: ", err)
 	}
 
-	utils.NewRepeatingTask(60, func() {
-		custom_handlers.FetchClaims()
-	})
 }
 
 func loadHandlers() handler.HandlerManager {
+	utils.NewRepeatingTask(60, func() {
+		custom_handlers.FetchClaims()
+	})
+
 	h := handlers.New()
 	h.RegisterHandler(packet.IDAvailableCommands, custom_handlers.AvailableCommandsHandler{})
 	h.RegisterHandler(packet.IDCommandRequest, custom_handlers.CommandRequestHandler{})

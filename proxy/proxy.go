@@ -60,7 +60,7 @@ func New(config utils.Config) *Proxy {
 }
 
 // The following program implements a proxy that forwards players from one local address to a remote address.
-func (arg *Proxy) Start(h func() handler.HandlerManager) error {
+func (arg *Proxy) Start(h handler.HandlerManager) error {
 	res, err := raknet.Ping(arg.Config.Connection.RemoteAddress)
 	if err != nil {
 		// Server prob not online, retrying
@@ -112,7 +112,7 @@ func (arg *Proxy) Start(h func() handler.HandlerManager) error {
 
 	log.Logger.Debugln("Original server address:", arg.Config.Connection.RemoteAddress, "public address:", arg.Config.Connection.ProxyAddress)
 	log.Logger.Println("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
-	arg.Handlers = h()
+	arg.Handlers = h
 
 	defer arg.Listener.Close()
 	for {
