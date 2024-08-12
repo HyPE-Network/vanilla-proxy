@@ -123,18 +123,12 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
-			// The listener closed, so we should restart it.
+			// The listener closed, so we should restart it. c==nil
 			log.Logger.Errorln(err)
-			utils.SendStaffAlertToDiscord("Proxy Listener Closed", err.Error(), 16711680, []map[string]interface{}{
-				{
-					"name":   "Connection From",
-					"value":  c.RemoteAddr().String(),
-					"inline": true,
-				},
-			})
-			c.Close()
-			arg.Start(h)
-			return nil // Should return error, but we want to restart listener
+			utils.SendStaffAlertToDiscord("Proxy Listener Closed", "```"+err.Error()+"```", 16711680, []map[string]interface{}{})
+
+			time.Sleep(time.Second * 5) // Wait 5 seconds before restarting the listener
+			return arg.Start(h)
 		}
 		log.Logger.Debugln("New connection from", c.(*minecraft.Conn).RemoteAddr())
 		go arg.handleConn(c.(*minecraft.Conn))
@@ -246,7 +240,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v", r)
-				// Optionally, you can disconnect the player or perform other cleanup actions here.
 				arg.DisconnectPlayer(player, "An internal error occurred")
 			}
 			arg.DisconnectPlayer(player, "Client Connection closed")
@@ -285,7 +278,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v", r)
-				// Optionally, you can disconnect the player or perform other cleanup actions here.
 				arg.DisconnectPlayer(player, "An internal error occurred")
 			}
 			arg.DisconnectPlayer(player, "Server Connection closed")
