@@ -114,7 +114,12 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	log.Logger.Println("Proxy has been started on Version", protocol.CurrentVersion, "protocol", protocol.CurrentProtocol)
 	arg.Handlers = h
 
-	defer arg.Listener.Close()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Logger.Errorf("Recovered from panic in Handling Listener: %v", r)
+		}
+		arg.Listener.Close()
+	}()
 	for {
 		c, err := arg.Listener.Accept()
 		if err != nil {
