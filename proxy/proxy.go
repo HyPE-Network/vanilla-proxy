@@ -239,7 +239,14 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	arg.UpdatePlayerDetails(player)
 
 	go func() { // client->proxy
-		defer arg.DisconnectPlayer(player, "Client Connection closed")
+		defer func() {
+			if r := recover(); r != nil {
+				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v", r)
+				// Optionally, you can disconnect the player or perform other cleanup actions here.
+				arg.DisconnectPlayer(player, "An internal error occurred")
+			}
+			arg.DisconnectPlayer(player, "Client Connection closed")
+		}()
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
@@ -270,7 +277,14 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}()
 	go func() { // proxy->server
-		defer arg.DisconnectPlayer(player, "Server Connection closed")
+		defer func() {
+			if r := recover(); r != nil {
+				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v", r)
+				// Optionally, you can disconnect the player or perform other cleanup actions here.
+				arg.DisconnectPlayer(player, "An internal error occurred")
+			}
+			arg.DisconnectPlayer(player, "Server Connection closed")
+		}()
 		for {
 			pk, err := serverConn.ReadPacket()
 			if err != nil {
