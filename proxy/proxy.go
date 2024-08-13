@@ -140,6 +140,13 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 
 // handleConn handles a new incoming minecraft.Conn from the minecraft.Listener passed.
 func (arg *Proxy) handleConn(conn *minecraft.Conn) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Logger.Errorf("Recovered from panic in handleConn: %v", r)
+			arg.Listener.Disconnect(conn, "An internal error occurred")
+		}
+	}()
+
 	playerWhitelisted := arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID)
 	if arg.Config.Server.Whitelist {
 		if !playerWhitelisted {
