@@ -84,6 +84,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for _, url := range arg.Config.Resources.PackURLs {
 		resourcePack, err := resource.ReadURL(url)
 		if err != nil {
+			log.Logger.Warnln("Failed to read resource pack from URL:", url, err)
 			return err
 		}
 		resourcePacks = append(resourcePacks, resourcePack)
@@ -93,6 +94,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	for _, path := range arg.Config.Resources.PackPaths {
 		resourcePack, err := resource.ReadPath(path)
 		if err != nil {
+			log.Logger.Warnln("Failed to read resource pack from path:", path, err)
 			return err
 		}
 		resourcePacks = append(resourcePacks, resourcePack)
