@@ -110,7 +110,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to start listener: %w", err)
 	}
 
 	log.Logger.Debugln("Original server address:", arg.Config.Connection.RemoteAddress, "public address:", arg.Config.Connection.ProxyAddress)
