@@ -163,21 +163,8 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	}
 	// Server is online, fetch data
 	status := minecraft.ParsePongData(res)
-	if status.PlayerCount >= status.MaxPlayers-arg.Config.Server.SecuredSlots {
-		if playerWhitelisted && status.PlayerCount >= status.MaxPlayers {
-			// Player is whitelisted, but all secured slots are taken too, so we can't let them in
-			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though you have priority access, all secured slots are taken! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
-			return
-		} else if !playerWhitelisted && status.PlayerCount < status.MaxPlayers {
-			// Player is not whitelisted, but the server is full to non whitelisted players.
-			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though the server is not full, the remaining slots are reserved for our staff! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
-			return
-		} else if !playerWhitelisted {
-			// Player is not whitelisted and the server is completely full.
-			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, the server is full, please try again later! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
-			return
-		}
-		// Player is whitelisted and there are secured slots available, let them in
+	if !arg.canJoinServer(status, conn, playerWhitelisted) {
+		return
 	}
 
 	clientData, err := arg.PlayerListManager.GetConnClientData(conn)
@@ -210,6 +197,28 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	log.Logger.Debugln("Server connection established for", serverConn.IdentityData().DisplayName)
 
+// canJoinServer checks if a player can join the server based on its status.
+// It returns true if the player can join, and false if the player can't join.
+// If false, the player will be disconnected with a message.
+func (arg *Proxy) canJoinServer(status minecraft.ServerStatus, conn *minecraft.Conn, whitelisted bool) bool {
+	if status.PlayerCount >= status.MaxPlayers-arg.Config.Server.SecuredSlots {
+		if whitelisted && status.PlayerCount >= status.MaxPlayers {
+			// Player is whitelisted, but all secured slots are taken too, so we can't let them in
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though you have priority access, all secured slots are taken! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
+			return false
+		} else if !whitelisted && status.PlayerCount < status.MaxPlayers {
+			// Player is not whitelisted, but the server is full to non whitelisted players.
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, even though the server is not full, the remaining slots are reserved for our staff! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
+			return false
+		} else if !whitelisted {
+			// Player is not whitelisted and the server is completely full.
+			arg.Listener.Disconnect(conn, fmt.Sprintf("Sorry %s, the server is full, please try again later! (%d/%d)", conn.IdentityData().DisplayName, status.PlayerCount, status.MaxPlayers))
+			return false
+		}
+		// Player is whitelisted and there are secured slots available, let them in
+	}
+	return true
+}
 	gameData := serverConn.GameData()
 	gameData.WorldSeed = 0
 	gameData.ClientSideGeneration = false
