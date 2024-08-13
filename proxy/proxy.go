@@ -200,6 +200,15 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	if !arg.initializeConnection(conn, serverConn) {
 		return
 	}
+
+	player := player.GetPlayer(conn, serverConn)
+	log.Logger.Infoln(player.GetName(), "joined the server")
+	player.SendXUIDToAddon()
+	arg.UpdatePlayerDetails(player)
+
+	arg.startPacketHandlers(player, conn, serverConn)
+}
+
 // canJoinServer checks if a player can join the server based on its status.
 // It returns true if the player can join, and false if the player can't join.
 // If false, the player will be disconnected with a message.
@@ -261,6 +270,7 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 	return true
 }
 
+func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, serverConn *minecraft.Conn) {
 	go func() { // client->proxy
 		defer func() {
 			if r := recover(); r != nil {
