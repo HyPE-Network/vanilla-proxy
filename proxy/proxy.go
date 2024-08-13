@@ -64,7 +64,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	res, err := raknet.Ping(arg.Config.Connection.RemoteAddress)
 	if err != nil {
 		// Server prob not online, retrying
-		log.Logger.Errorln("Failed to ping server, retrying in 5 seconds:", err)
+		log.Logger.Warnln("Failed to ping server, retrying in 5 seconds:", err)
 		time.Sleep(time.Second * 5)
 		arg.Start(h)
 		return nil
