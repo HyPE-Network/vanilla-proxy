@@ -272,33 +272,28 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 		for {
 			pk, err := conn.ReadPacket()
 			if err != nil {
-				var disc minecraft.DisconnectError
-				if ok := errors.As(err, &disc); ok {
-					arg.DisconnectPlayer(player, disc.Error())
-				} else if !strings.Contains(err.Error(), "use of closed network connection") {
-					// Error is not a disconnect error, so log the error.
-					log.Logger.Errorln("Failed to read Packet from Client", err)
+				if !arg.handlePacketError(err, player, "Failed to read packet from client") {
+					return
 				}
-				return
+				continue
 			}
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
 			if err != nil {
-				log.Logger.Errorln(err)
+				log.Logger.Errorln("Error handling packet from client", err)
 			}
 
 			if ok {
 				if err := serverConn.WritePacket(pk); err != nil {
-					var disc minecraft.DisconnectError
-					if ok := errors.As(err, &disc); ok {
-						arg.DisconnectPlayer(player, disc.Error())
+					if !arg.handlePacketError(err, player, "Failed to write packet to proxy") {
+						return
 					}
-					log.Logger.Errorln(err)
-					return
+					continue
 				}
 			}
 		}
 	}()
+
 	go func() { // proxy->server
 		defer func() {
 			if r := recover(); r != nil {
@@ -310,13 +305,10 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 		for {
 			pk, err := serverConn.ReadPacket()
 			if err != nil {
-				var disc minecraft.DisconnectError
-				if ok := errors.As(err, &disc); ok {
-					arg.DisconnectPlayer(player, disc.Error())
-				} else if !strings.Contains(err.Error(), "use of closed network connection") {
-					log.Logger.Errorln("Failed to read Packet from Server", err)
+				if !arg.handlePacketError(err, player, "Failed to read packet from proxy") {
+					return
 				}
-				return
+				continue
 			}
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Server")
@@ -326,11 +318,29 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 
 			if ok {
 				if err := conn.WritePacket(pk); err != nil {
-					return
+					if !arg.handlePacketError(err, player, "Failed to write packet to server") {
+						return
+					}
+					continue
 				}
 			}
 		}
 	}()
+}
+
+// handlePacketError handles an error that occurred while reading a packet.
+// It returns true if the player was disconnected, and false if it wasn't.
+func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) bool {
+	var disc minecraft.DisconnectError
+	if ok := errors.As(err, &disc); ok {
+		arg.DisconnectPlayer(player, disc.Error())
+		return false
+	}
+	if !strings.Contains(err.Error(), "use of closed network connection") {
+		// Error is not a disconnect error, so log the error.
+		log.Logger.Errorln(msg, err)
+	}
+	return true
 }
 
 // DisconnectPlayer disconnects a player from the proxy.
