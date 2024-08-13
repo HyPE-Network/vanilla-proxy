@@ -197,6 +197,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	log.Logger.Debugln("Server connection established for", serverConn.IdentityData().DisplayName)
 
+	if !arg.initializeConnection(conn, serverConn) {
+		return
+	}
 // canJoinServer checks if a player can join the server based on its status.
 // It returns true if the player can join, and false if the player can't join.
 // If false, the player will be disconnected with a message.
@@ -219,6 +222,11 @@ func (arg *Proxy) canJoinServer(status minecraft.ServerStatus, conn *minecraft.C
 	}
 	return true
 }
+
+// initializeConnection handles the initial setup for a new connection.
+// It returns true if the connection was successfully established, and false if it wasn't.
+// If false, the player will be disconnected with a message.
+func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecraft.Conn) bool {
 	gameData := serverConn.GameData()
 	gameData.WorldSeed = 0
 	gameData.ClientSideGeneration = false
@@ -230,14 +238,14 @@ func (arg *Proxy) canJoinServer(status minecraft.ServerStatus, conn *minecraft.C
 	g.Add(2)
 	go func() {
 		if err := conn.StartGame(gameData); err != nil {
-			log.Logger.Errorln(err)
+			log.Logger.Errorln("Failed to start game on client:", err)
 			success = false
 		}
 		g.Done()
 	}()
 	go func() {
 		if err := serverConn.DoSpawn(); err != nil {
-			log.Logger.Errorln(err)
+			log.Logger.Errorln("Failed to spawn on server:", err)
 			success = false
 		}
 		g.Done()
@@ -247,13 +255,11 @@ func (arg *Proxy) canJoinServer(status minecraft.ServerStatus, conn *minecraft.C
 	if !success {
 		arg.Listener.Disconnect(conn, "Failed to establish a connection, please try again!")
 		serverConn.Close()
-		return
+		return false
 	}
 
-	player := player.GetPlayer(conn, serverConn)
-	log.Logger.Infoln(player.GetName(), "joined the server")
-	player.SendXUIDToAddon()
-	arg.UpdatePlayerDetails(player)
+	return true
+}
 
 	go func() { // client->proxy
 		defer func() {
