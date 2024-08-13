@@ -127,7 +127,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		c, err := arg.Listener.Accept()
 		if err != nil {
 			// The listener closed, so we should restart it. c==nil
-			log.Logger.Errorln(err)
+			log.Logger.Errorf("Listener accept error: %v", err)
 			utils.SendStaffAlertToDiscord("Proxy Listener Closed", "```"+err.Error()+"```", 16711680, []map[string]interface{}{})
 
 			time.Sleep(time.Second * 5) // Wait 5 seconds before restarting the listener
