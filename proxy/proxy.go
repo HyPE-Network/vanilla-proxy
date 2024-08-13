@@ -121,7 +121,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		if r := recover(); r != nil {
 			log.Logger.Errorf("Recovered from panic in Handling Listener: %v", r)
 		}
-		arg.Listener.Close()
+		log.Logger.Errorf("Closing listener: %v", arg.Listener.Close())
 	}()
 	for {
 		c, err := arg.Listener.Accept()
