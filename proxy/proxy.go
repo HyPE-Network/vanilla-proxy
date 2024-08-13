@@ -133,7 +133,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 			time.Sleep(time.Second * 5) // Wait 5 seconds before restarting the listener
 			return arg.Start(h)
 		}
-		log.Logger.Debugln("New connection from", c.(*minecraft.Conn).RemoteAddr())
+		log.Logger.Debugln("New connection from", c.RemoteAddr())
 		go arg.handleConn(c.(*minecraft.Conn))
 	}
 }
