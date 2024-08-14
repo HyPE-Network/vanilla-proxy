@@ -251,7 +251,7 @@ func (player *Player) GetNextItemStackRequestID() int32 {
 func (player *Player) SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo) {
 	// Find if the slot is already in this list, if so update, else append
 	for i, slot := range player.PlayerData.ItemsInContainers {
-		if slot.ContainerID == slotInfo.ContainerID && slot.Slot == slotInfo.Slot {
+		if slot.Container.ContainerID == slotInfo.Container.ContainerID && slot.Slot == slotInfo.Slot {
 			player.PlayerData.ItemsInContainers[i] = slotInfo
 			return
 		}
@@ -266,12 +266,15 @@ func (player *Player) ClearItemsInContainers() {
 // GetItemsInContainerSlot returns the amount of items that are in the container slot that the player has put in.
 func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo {
 	for _, slotInfo := range player.PlayerData.ItemsInContainers {
-		if slotInfo.ContainerID == containerID && slotInfo.Slot == slot {
+		if slotInfo.Container.ContainerID == containerID && slotInfo.Slot == slot {
 			return slotInfo
 		}
 	}
 	return protocol.StackRequestSlotInfo{
-		ContainerID:    containerID,
+		Container: protocol.FullContainerName{
+			ContainerID:        containerID,
+			DynamicContainerID: 0,
+		},
 		Slot:           slot,
 		StackNetworkID: 0, // Empty
 	}

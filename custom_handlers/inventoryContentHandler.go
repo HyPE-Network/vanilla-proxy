@@ -17,7 +17,7 @@ func (ItemStackRequestHandler) Handle(pk packet.Packet, player human.Human) (boo
 			switch td := action.(type) {
 			case *protocol.PlaceStackRequestAction:
 				//log.Println("PlaceStackRequestAction")
-				destId := td.Destination.ContainerID
+				destId := td.Destination.Container.ContainerID
 				if destId == protocol.ContainerCraftingInput || destId == protocol.ContainerCombinedHotBarAndInventory {
 					//log.Println("Item Being set to Crafting Table")
 					// Most likely setting to a container, log the container ID
@@ -27,7 +27,7 @@ func (ItemStackRequestHandler) Handle(pk packet.Packet, player human.Human) (boo
 				}
 			case *protocol.TakeStackRequestAction:
 				// log.Println("TakeStackRequestAction")
-				srcId := td.Source.ContainerID
+				srcId := td.Source.Container.ContainerID
 				if srcId == protocol.ContainerCraftingInput || srcId == protocol.ContainerCombinedHotBarAndInventory {
 					// log.Println("Item Being taken from Crafting Table")
 					copiedSource := td.Source
