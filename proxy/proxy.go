@@ -38,6 +38,7 @@ type Proxy struct {
 	Listener          *minecraft.Listener
 	WhitelistManager  *whitelist.WhitelistManager
 	PlayerListManager *playerlist.PlayerlistManager
+	ResourcePacks     []*resource.Pack
 }
 
 func New(config utils.Config) *Proxy {
@@ -51,6 +52,29 @@ func New(config utils.Config) *Proxy {
 		PlayerListManager: playerListManager,
 		WhitelistManager:  whitelist.Init(),
 	}
+
+	// Initialize an empty slice of *resource.Pack
+	var resourcePacks []*resource.Pack
+
+	// Loop through all the pack URLs and append each pack to the slice
+	for _, url := range Proxy.Config.Resources.PackURLs {
+		resourcePack, err := resource.ReadURL(url)
+		if err != nil {
+			log.Logger.Errorln("Failed to read resource pack from URL:", url, err)
+		}
+		resourcePacks = append(resourcePacks, resourcePack)
+	}
+
+	// Loop through all the pack paths and append each pack to the slice
+	for _, path := range Proxy.Config.Resources.PackPaths {
+		resourcePack, err := resource.ReadPath(path)
+		if err != nil {
+			log.Logger.Errorln("Failed to read resource pack from path:", path, err)
+		}
+		resourcePacks = append(resourcePacks, resourcePack)
+	}
+
+	Proxy.ResourcePacks = resourcePacks
 
 	if config.WorldBorder.Enabled {
 		Proxy.Worlds = world.Init(math.NewArea2(config.WorldBorder.MinX, config.WorldBorder.MinZ, config.WorldBorder.MaxX, config.WorldBorder.MaxZ))
@@ -74,36 +98,12 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	log.Logger.Infoln("Server", status.ServerName, "is online with MOTD", status.ServerSubName)
 	p, err := minecraft.NewForeignStatusProvider(arg.Config.Connection.RemoteAddress)
 	if err != nil {
-		return err
-	}
-
-	// Initialize an empty slice of *resource.Pack
-	var resourcePacks []*resource.Pack
-
-	// Loop through all the pack URLs and append each pack to the slice
-	for _, url := range arg.Config.Resources.PackURLs {
-		resourcePack, err := resource.ReadURL(url)
-		if err != nil {
-			log.Logger.Warnln("Failed to read resource pack from URL:", url, err)
-			return err
-		}
-		resourcePacks = append(resourcePacks, resourcePack)
-	}
-
-	// Loop through all the pack paths and append each pack to the slice
-	for _, path := range arg.Config.Resources.PackPaths {
-		resourcePack, err := resource.ReadPath(path)
-		if err != nil {
-			log.Logger.Warnln("Failed to read resource pack from path:", path, err)
-			return err
-		}
-		resourcePacks = append(resourcePacks, resourcePack)
 	}
 
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
 		AuthenticationDisabled: arg.Config.Server.DisableXboxAuth,
 		StatusProvider:         p,
-		ResourcePacks:          resourcePacks,
+		ResourcePacks:          arg.ResourcePacks,
 		TexturePacksRequired:   true,
 		ErrorLog:               log.Logger,
 		Compression:            packet.FlateCompression,
