@@ -104,6 +104,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 	log.Logger.Infoln("Server", status.ServerName, "is online with MOTD", status.ServerSubName)
 	p, err := minecraft.NewForeignStatusProvider(arg.Config.Connection.RemoteAddress)
 	if err != nil {
+		return fmt.Errorf("failed to create foreign status provider: %w", err)
 	}
 
 	arg.Listener, err = minecraft.ListenConfig{ // server settings
