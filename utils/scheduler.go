@@ -16,6 +16,7 @@ type DelayedRepeatingTask struct {
 type RepeatingTask struct {
 	Seconds int64
 	action  func()
+	stop    chan struct{}
 }
 
 func NewDelayedTask(delay int64, action func()) {
@@ -56,7 +57,7 @@ func (drt *DelayedRepeatingTask) onRun() {
 	drt.action()
 }
 
-func NewRepeatingTask(seconds int64, action func()) {
+func NewRepeatingTask(seconds int64, action func()) *RepeatingTask {
 	drt := &RepeatingTask{
 		Seconds: seconds,
 		action:  action,
@@ -64,12 +65,23 @@ func NewRepeatingTask(seconds int64, action func()) {
 
 	go func() {
 		for {
-			drt.onRun()
-			time.Sleep(time.Duration(drt.Seconds) * time.Second)
+			select {
+			case <-drt.stop:
+				return
+			default:
+				drt.onRun()
+				time.Sleep(time.Duration(drt.Seconds) * time.Second)
+			}
 		}
 	}()
+
+	return drt
 }
 
 func (drt *RepeatingTask) onRun() {
 	drt.action()
+}
+
+func (drt *RepeatingTask) Stop() {
+	close(drt.stop)
 }
