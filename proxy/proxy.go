@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -302,6 +303,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 				arg.DisconnectPlayer(player, "Client Connection closed")
 			}
 		}()
+
 		for {
 			select {
 			case <-arg.ctx.Done():
@@ -313,14 +315,14 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 					return
 				}
 
-			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
-			if err != nil {
-				log.Logger.Errorln("Error handling packet from client", err)
-			}
+				ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
+				if err != nil {
+					log.Logger.Errorln("Error handling packet from client", err)
+				}
 
-			if ok {
-				if err := serverConn.WritePacket(pk); err != nil {
-					if !arg.handlePacketError(err, player, "Failed to write packet to proxy") {
+				if ok {
+					if err := serverConn.WritePacket(pk); err != nil {
+						arg.handlePacketError(err, player, "Failed to write packet to proxy")
 						return
 					}
 				}
@@ -333,9 +335,11 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v", r)
 				arg.DisconnectPlayer(player, "An internal error occurred")
+			} else {
+				arg.DisconnectPlayer(player, "Server Connection closed")
 			}
-			arg.DisconnectPlayer(player, "Server Connection closed")
 		}()
+
 		for {
 			select {
 			case <-arg.ctx.Done():
@@ -347,17 +351,16 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 					return
 				}
 
-			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Server")
-			if err != nil {
-				log.Logger.Errorln(err)
-			}
+				ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Server")
+				if err != nil {
+					log.Logger.Errorln(err)
+				}
 
-			if ok {
-				if err := conn.WritePacket(pk); err != nil {
-					if !arg.handlePacketError(err, player, "Failed to write packet to server") {
+				if ok {
+					if err := conn.WritePacket(pk); err != nil {
+						arg.handlePacketError(err, player, "Failed to write packet to server")
 						return
 					}
-					continue
 				}
 			}
 		}
