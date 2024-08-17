@@ -39,6 +39,8 @@ type Proxy struct {
 	WhitelistManager  *whitelist.WhitelistManager
 	PlayerListManager *playerlist.PlayerlistManager
 	ResourcePacks     []*resource.Pack
+	ctx               context.Context
+	cancel            context.CancelFunc
 }
 
 func New(config utils.Config) *Proxy {
@@ -47,10 +49,14 @@ func New(config utils.Config) *Proxy {
 		log.Logger.Fatalln("Error in initializing playerListManager: ", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	Proxy := &Proxy{
 		Config:            config,
 		PlayerListManager: playerListManager,
 		WhitelistManager:  whitelist.Init(),
+		ctx:               ctx,
+		cancel:            cancel,
 	}
 
 	// Initialize an empty slice of *resource.Pack
@@ -124,17 +130,27 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		log.Logger.Errorf("Closing listener: %v", arg.Listener.Close())
 	}()
 	for {
-		c, err := arg.Listener.Accept()
-		if err != nil {
-			// The listener closed, so we should restart it. c==nil
-			log.Logger.Errorf("Listener accept error: %v", err)
-			utils.SendStaffAlertToDiscord("Proxy Listener Closed", "```"+err.Error()+"```", 16711680, []map[string]interface{}{})
+		select {
+		case <-arg.ctx.Done():
+			log.Logger.Infoln("Proxy shutting down")
+			return nil
+		default:
+			c, err := arg.Listener.Accept()
+			if err != nil {
+				if arg.ctx.Err() != nil {
+					return nil // Exit if context is cancelled
+				}
 
-			time.Sleep(time.Second * 5) // Wait 5 seconds before restarting the listener
-			return arg.Start(h)
+				// The listener closed, so we should restart it. c==nil
+				log.Logger.Errorf("Listener accept error: %v", err)
+				utils.SendStaffAlertToDiscord("Proxy Listener Closed", "```"+err.Error()+"```", 16711680, []map[string]interface{}{})
+
+				time.Sleep(time.Second * 5) // Wait 5 seconds before restarting the listener
+				return arg.Start(h)
+			}
+			log.Logger.Debugln("New connection from", c.RemoteAddr())
+			go arg.handleConn(c.(*minecraft.Conn))
 		}
-		log.Logger.Debugln("New connection from", c.RemoteAddr())
-		go arg.handleConn(c.(*minecraft.Conn))
 	}
 }
 
@@ -145,6 +161,11 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 			log.Logger.Errorf("Recovered from panic in handleConn: %v", r)
 			arg.Listener.Disconnect(conn, "An internal error occurred")
 		}
+	}()
+
+	go func() {
+		<-arg.ctx.Done()
+		conn.Close() // Ensure the connection is closed when context is cancelled
 	}()
 
 	playerWhitelisted := arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID)
@@ -280,9 +301,13 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			arg.DisconnectPlayer(player, "Client Connection closed")
 		}()
 		for {
-			pk, err := conn.ReadPacket()
-			if err != nil {
-				if !arg.handlePacketError(err, player, "Failed to read packet from client") {
+			select {
+			case <-arg.ctx.Done():
+				return
+			default:
+				pk, err := conn.ReadPacket()
+				if err != nil {
+					arg.handlePacketError(err, player, "Failed to read packet from client")
 					return
 				}
 				continue
@@ -313,9 +338,13 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			arg.DisconnectPlayer(player, "Server Connection closed")
 		}()
 		for {
-			pk, err := serverConn.ReadPacket()
-			if err != nil {
-				if !arg.handlePacketError(err, player, "Failed to read packet from proxy") {
+			select {
+			case <-arg.ctx.Done():
+				return
+			default:
+				pk, err := serverConn.ReadPacket()
+				if err != nil {
+					arg.handlePacketError(err, player, "Failed to read packet from proxy")
 					return
 				}
 				continue
@@ -336,6 +365,14 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			}
 		}
 	}()
+}
+
+func (arg *Proxy) Shutdown() {
+	log.Logger.Infoln("Shutting down proxy")
+	arg.cancel() // This will cancel the context and stop all goroutines
+	if arg.Listener != nil {
+		arg.Listener.Close() // Close the listener if it's open
+	}
 }
 
 // handlePacketError handles an error that occurred while reading a packet.
