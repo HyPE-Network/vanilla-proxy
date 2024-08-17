@@ -298,8 +298,9 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v", r)
 				arg.DisconnectPlayer(player, "An internal error occurred")
+			} else {
+				arg.DisconnectPlayer(player, "Client Connection closed")
 			}
-			arg.DisconnectPlayer(player, "Client Connection closed")
 		}()
 		for {
 			select {
