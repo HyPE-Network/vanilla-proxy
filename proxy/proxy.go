@@ -312,8 +312,6 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 					arg.handlePacketError(err, player, "Failed to read packet from client")
 					return
 				}
-				continue
-			}
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Client")
 			if err != nil {
@@ -325,7 +323,6 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 					if !arg.handlePacketError(err, player, "Failed to write packet to proxy") {
 						return
 					}
-					continue
 				}
 			}
 		}
@@ -349,8 +346,6 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 					arg.handlePacketError(err, player, "Failed to read packet from proxy")
 					return
 				}
-				continue
-			}
 
 			ok, pk, err := arg.Handlers.HandlePacket(pk, player, "Server")
 			if err != nil {
