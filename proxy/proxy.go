@@ -470,8 +470,31 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	log.Logger.Debugln("Disconnecting player:", player.GetName(), "with reason:", message)
 
 	// Disconnect
-	player.GetSession().Connection.ServerConn.Close()
-	arg.Listener.Disconnect(player.GetSession().Connection.ClientConn, message)
+	serverConn := player.GetSession().Connection.ServerConn
+	clientConn := player.GetSession().Connection.ClientConn
+
+	// Order is important here, as the server needs to properly exit.
+	var listenerErr error
+	var serverErr error
+
+	if message == "Client Connection closed" {
+		listenerErr = arg.Listener.Disconnect(clientConn, message)
+		serverErr = serverConn.Close()
+	} else if message == "Server Connection closed" {
+		serverErr = serverConn.Close()
+		listenerErr = arg.Listener.Disconnect(clientConn, message)
+	} else {
+		// Should just be a normal disconnect
+		listenerErr = arg.Listener.Disconnect(clientConn, message)
+	}
+
+	if listenerErr != nil {
+		log.Logger.Errorln("Failed to disconnect client from listener:", listenerErr)
+	}
+	if serverErr != nil {
+		log.Logger.Errorln("Failed to disconnect server connection:", serverErr)
+	}
+
 }
 
 type PlayerDetails struct {
