@@ -373,18 +373,15 @@ func (arg *Proxy) Shutdown() {
 }
 
 // handlePacketError handles an error that occurred while reading a packet.
-// It returns true if the player was disconnected, and false if it wasn't.
-func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) bool {
+func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) {
 	var disc minecraft.DisconnectError
 	if ok := errors.As(err, &disc); ok {
 		arg.DisconnectPlayer(player, disc.Error())
-		return false
 	}
 	if !strings.Contains(err.Error(), "use of closed network connection") {
 		// Error is not a disconnect error, so log the error.
 		log.Logger.Errorln(msg, err)
 	}
-	return true
 }
 
 // DisconnectPlayer disconnects a player from the proxy.
