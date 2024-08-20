@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
@@ -197,4 +198,68 @@ func StringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+var (
+	profilePictureUrls = sync.Map{} // Thread-safe map to cache profile picture URLs
+)
+
+// GetXboxIconLink retrieves the Xbox profile picture URL for the given XUID.
+// It first checks if the URL is cached; if not, it fetches it from the API.
+func GetXboxIconLink(xuid string) (string, error) {
+	if cache, ok := profilePictureUrls.Load(xuid); ok {
+		return cache.(string), nil
+	}
+
+	url := fmt.Sprintf("https://xbl.io/api/v2/account/%s", xuid)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create new request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Authorization", "2a9b346e-f957-4325-8d8e-a5c76c315730")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		LogErrorToDiscord(err)
+		return "", fmt.Errorf("failed to fetch data: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf("failed to fetch data, status code: %d", resp.StatusCode)
+		LogErrorToDiscord(err)
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		LogErrorToDiscord(err)
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var data struct {
+		ProfileUsers []struct {
+			Settings []struct {
+				Value string `json:"value"`
+			} `json:"settings"`
+		} `json:"profileUsers"`
+	}
+
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		LogErrorToDiscord(err)
+		return "", fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if len(data.ProfileUsers) == 0 || len(data.ProfileUsers[0].Settings) == 0 {
+		return "", fmt.Errorf("profile picture URL not found")
+	}
+
+	profilePictureUrl := data.ProfileUsers[0].Settings[0].Value
+	profilePictureUrls.Store(xuid, profilePictureUrl) // Cache the result
+
+	return profilePictureUrl, nil
 }
