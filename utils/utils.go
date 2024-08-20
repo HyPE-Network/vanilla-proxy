@@ -145,17 +145,7 @@ func LogErrorToDiscord(err error) {
 		},
 	}
 
-	jsonParams, _ := json.Marshal(params)
-	req, _ := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Logger.Println("Failed to send logs to discord", err)
-		return
-	}
-	defer resp.Body.Close()
+	SendJsonToDiscord(config.Logging.DiscordStaffAlertsWebhook, params)
 }
 
 func SendStaffAlertToDiscord(title string, description string, color int, fields []map[string]interface{}) {
@@ -175,12 +165,16 @@ func SendStaffAlertToDiscord(title string, description string, color int, fields
 		},
 	}
 
+	SendJsonToDiscord(config.Logging.DiscordStaffAlertsWebhook, params)
+}
+
+func SendJsonToDiscord(url string, params map[string]interface{}) {
 	jsonParams, err := json.Marshal(params)
 	if err != nil {
 		log.Logger.Println("Failed to marshal json", err)
 		return
 	}
-	req, err := http.NewRequest("POST", config.Logging.DiscordStaffAlertsWebhook, io.NopCloser(bytes.NewBuffer(jsonParams)))
+	req, err := http.NewRequest("POST", url, io.NopCloser(bytes.NewBuffer(jsonParams)))
 	if err != nil {
 		log.Logger.Println("Failed to create new request", err)
 		return
@@ -190,7 +184,7 @@ func SendStaffAlertToDiscord(title string, description string, color int, fields
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Logger.Println("Failed to send staff alert to discord", err)
+		log.Logger.Println("Failed to send json to discord", err)
 		return
 	}
 	defer resp.Body.Close()
