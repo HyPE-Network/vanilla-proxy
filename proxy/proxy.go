@@ -65,6 +65,7 @@ func New(config utils.Config) *Proxy {
 
 	// Loop through all the pack URLs and append each pack to the slice
 	for _, url := range Proxy.Config.Resources.PackURLs {
+		log.Logger.Debugln("Reading resource pack from URL:", url)
 		resourcePack, err := resource.ReadURL(url)
 		if err != nil {
 			log.Logger.Errorln("Failed to read resource pack from URL:", url, err)
@@ -74,6 +75,7 @@ func New(config utils.Config) *Proxy {
 
 	// Loop through all the pack paths and append each pack to the slice
 	for _, path := range Proxy.Config.Resources.PackPaths {
+		log.Logger.Debugln("Reading resource pack from path:", path)
 		resourcePack, err := resource.ReadPath(path)
 		if err != nil {
 			log.Logger.Errorln("Failed to read resource pack from path:", path, err)
