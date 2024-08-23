@@ -226,6 +226,13 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		return
 	}
 
+	playerXuid := conn.IdentityData().XUID
+	if playerXuid == "" {
+		log.Logger.Errorln("Player XUID is empty, disconnecting player")
+		arg.Listener.Disconnect(conn, "Failed to get your XUID, please try again!")
+		return
+	}
+
 	player := player.GetPlayer(conn, serverConn)
 	log.Logger.Infoln(player.GetName(), "joined the server")
 	player.SendXUIDToAddon()
