@@ -1,6 +1,8 @@
 package custom_handlers
 
 import (
+	"strconv"
+
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
@@ -119,6 +121,26 @@ type ClaimPlayerAuthInputHandler struct{}
 
 func (ClaimPlayerAuthInputHandler) Handle(pk packet.Packet, player human.Human) (bool, packet.Packet, error) {
 	dataPacket := pk.(*packet.PlayerAuthInput)
+
+	playerPing := player.GetPing()
+	formattedPing := strconv.FormatUint(uint64(playerPing), 10)
+	pingStatus := "§a"
+	if playerPing < 20 {
+		pingStatus = "§a"
+	} else if playerPing < 50 {
+		pingStatus = "§e"
+	} else if playerPing < 100 {
+		pingStatus = "§6"
+	} else if playerPing < 200 {
+		pingStatus = "§c"
+	} else {
+		pingStatus = "§4"
+	}
+	titlePk := &packet.SetTitle{
+		ActionType: packet.TitleActionSetTitle,
+		Text:       "&_playerPing:Current Ping: " + pingStatus + formattedPing,
+	}
+	player.DataPacket(titlePk)
 
 	// Loop through block actions, and check if player can interact with block
 	for _, blockAction := range dataPacket.BlockActions {
