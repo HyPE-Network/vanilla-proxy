@@ -65,7 +65,7 @@ func FormatTime(t time.Time) string {
 	return t.Format("15:04:05 2006.01.02") // magic numbers https://go.dev/src/time/format.go
 }
 
-// Fetches a tableName from the database
+// FetchDatabase fetches data from the database and handles 429 rate-limiting errors with retries
 func FetchDatabase[T any](tableName string) (map[string]T, error) {
 	dbConfig := ReadConfig().Database
 
@@ -73,25 +73,50 @@ func FetchDatabase[T any](tableName string) (map[string]T, error) {
 
 	log.Logger.Printf("Fetching \"%s\" from: \"%s\"\n", tableName, uri)
 
-	req, err := http.NewRequest("GET", uri, nil)
-	if err != nil {
-		log.Logger.Fatalln("Failed to create new request:", err)
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("authorization", dbConfig.Key)
-
 	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		LogErrorToDiscord(err)
-		return nil, err
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
+	var err error
 
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to fetch data, status code: %d", resp.StatusCode)
+	// Implement retry logic with exponential backoff
+	retryAttempts := 5
+	for i := 0; i < retryAttempts; i++ {
+		req, err := http.NewRequest("GET", uri, nil)
+		if err != nil {
+			log.Logger.Fatalln("Failed to create new request:", err)
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("authorization", dbConfig.Key)
+
+		resp, err = client.Do(req)
+		if err != nil {
+			LogErrorToDiscord(err)
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			// Successful request
+			break
+		} else if resp.StatusCode == http.StatusTooManyRequests {
+			// Handle 429 status code
+			if i < retryAttempts-1 {
+				retryAfter := time.Duration(1<<i) * time.Second // Exponential backoff
+				log.Logger.Printf("Rate limited, retrying in %s\n", retryAfter)
+				time.Sleep(retryAfter)
+				continue
+			}
+		} else {
+			// Other non-success status codes
+			err := fmt.Errorf("failed to fetch data, status code: %d, body: %s", resp.StatusCode, resp.Body)
+			LogErrorToDiscord(err)
+			return nil, err
+		}
+	}
+
+	if resp == nil {
+		err := fmt.Errorf("failed to fetch data after %d attempts", retryAttempts)
 		LogErrorToDiscord(err)
 		return nil, err
 	}
