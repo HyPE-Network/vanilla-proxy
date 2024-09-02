@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
+	"github.com/tailscale/hujson"
 )
 
 func Format(a []any) string {
@@ -287,4 +288,14 @@ func GetXboxIconLink(xuid string) (string, error) {
 	profilePictureUrls.Store(xuid, profilePictureUrl) // Cache the result
 
 	return profilePictureUrl, nil
+}
+
+// ParseCommentedJSON parses JSON with comments and returns a JSON byte slice.
+func ParseCommentedJSON(b []byte) ([]byte, error) {
+	ast, err := hujson.Parse(b)
+	if err != nil {
+		return b, err
+	}
+	ast.Standardize()
+	return ast.Pack(), nil
 }
