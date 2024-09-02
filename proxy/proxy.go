@@ -35,7 +35,7 @@ var ProxyInstance *Proxy
 
 type Proxy struct {
 	Worlds            *world.Worlds
-	Entities          entity.Entities
+	Entities          *entity.Entities
 	Config            utils.Config
 	Handlers          handler.HandlerManager
 	Listener          *minecraft.Listener
