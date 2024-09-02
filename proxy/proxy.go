@@ -14,6 +14,7 @@ import (
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/math"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/entity"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/playerlist"
@@ -34,6 +35,7 @@ var ProxyInstance *Proxy
 
 type Proxy struct {
 	Worlds            *world.Worlds
+	Entities          entity.Entities
 	Config            utils.Config
 	Handlers          handler.HandlerManager
 	Listener          *minecraft.Listener
@@ -54,6 +56,7 @@ func New(config utils.Config) *Proxy {
 
 	Proxy := &Proxy{
 		Config:            config,
+		Entities:          entity.Init(),
 		PlayerListManager: playerListManager,
 		WhitelistManager:  whitelist.Init(),
 		ctx:               ctx,
