@@ -67,6 +67,9 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 
 	handlers[packet.IDPacketViolationWarning] = []handler.PacketHandler{MalformedHandler{}}
 
+	handlers[packet.IDAddActor] = []handler.PacketHandler{AddActorHandler{}}
+	handlers[packet.IDRemoveActor] = []handler.PacketHandler{RemoveActorHandler{}}
+
 	return handlers
 }
 
