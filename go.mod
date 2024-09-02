@@ -12,6 +12,7 @@ require (
 	github.com/sandertv/go-raknet v1.14.1
 	github.com/sandertv/gophertunnel v1.40.0
 	github.com/sirupsen/logrus v1.9.3
+	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 )
 
 require (
@@ -28,6 +29,6 @@ require (
 	golang.org/x/text v0.17.0 // indirect
 )
 
-replace github.com/sandertv/go-raknet => github.com/smell-of-curry/go-raknet v0.0.0-20240827213717-fbf3f247f4c6
+replace github.com/sandertv/go-raknet => github.com/smell-of-curry/go-raknet v0.0.0-20240831142756-af42da4d0d54
 
-replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240827210846-ad6d4d51c6c9
+replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240902142224-951735410358

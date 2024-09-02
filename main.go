@@ -43,6 +43,8 @@ func loadHandlers() handler.HandlerManager {
 	h.RegisterHandler(packet.IDContainerClose, custom_handlers.ContainerCloseHandler{})
 	h.RegisterHandler(packet.IDItemStackRequest, custom_handlers.ItemStackRequestHandler{})
 	h.RegisterHandler(packet.IDPlayerList, custom_handlers.PlayerListHandler{})
+	h.RegisterHandler(packet.IDAddActor, &custom_handlers.AddActorNameTagHandler{})
+	h.RegisterHandler(packet.IDSetActorData, &custom_handlers.SetActorDataNameTagHandler{})
 
 	return h
 }
