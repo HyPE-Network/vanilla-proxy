@@ -231,12 +231,17 @@ var (
 )
 
 // GetXboxIconLink retrieves the Xbox profile picture URL for the given XUID.
-// It first checks if the URL is cached; if not, it fetches it from the API.
+// It first checks if the URL is cached; if not, it fetches it from the API with error handling for 429 status codes.
 func GetXboxIconLink(xuid string) (string, error) {
 	if cache, ok := profilePictureUrls.Load(xuid); ok {
 		return cache.(string), nil
 	}
 
+	// Default values for maxRetries and backoff
+	maxRetries := 5
+	backoff := time.Second
+
+	client := &http.Client{}
 	url := fmt.Sprintf("https://xbl.io/api/v2/account/%s", xuid)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -246,23 +251,48 @@ func GetXboxIconLink(xuid string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Authorization", "2a9b346e-f957-4325-8d8e-a5c76c315730")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		LogErrorToDiscord(err)
-		return "", fmt.Errorf("failed to fetch data: %w", err)
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
 
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("failed to fetch data, status code: %d", resp.StatusCode)
-		LogErrorToDiscord(err)
-		return "", err
+	for maxRetries > 0 {
+		resp, err = client.Do(req)
+		if err != nil {
+			LogErrorToDiscord(err)
+			return "", fmt.Errorf("failed to fetch xbox icon link: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			// Handle 429 error with retry after exponential backoff
+			maxRetries--
+			log.Logger.Warnf("Received 429 Too Many Requests, retrying... attempt %d\n", maxRetries)
+
+			retryAfter := resp.Header.Get("Retry-After")
+			if retryAfter != "" {
+				// If the server provides a "Retry-After" header, respect it
+				delay, _ := strconv.Atoi(retryAfter)
+				time.Sleep(time.Duration(delay) * time.Second)
+			} else {
+				// Exponential backoff if no "Retry-After" header is provided
+				time.Sleep(backoff)
+				backoff *= 2
+			}
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			err := fmt.Errorf("failed to fetch Xbox Icon Link, status code: %d", resp.StatusCode)
+			return "", err
+		}
+
+		break
+	}
+
+	if maxRetries <= 0 {
+		return "", fmt.Errorf("exceeded maximum retries after 429 Too Many Requests")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		LogErrorToDiscord(err)
 		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
