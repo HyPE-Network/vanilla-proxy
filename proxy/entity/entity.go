@@ -23,6 +23,7 @@ func Init() *Entities {
 func (entities *Entities) SetEntity(actorId int64, data EntityData) {
 	entities.mu.Lock()
 	defer entities.mu.Unlock()
+
 	entities.IdToData[actorId] = data
 }
 
@@ -30,6 +31,7 @@ func (entities *Entities) SetEntity(actorId int64, data EntityData) {
 func (entities *Entities) GetEntity(actorId int64) (EntityData, bool) {
 	entities.mu.RLock()
 	defer entities.mu.RUnlock()
+
 	entityData, ok := entities.IdToData[actorId]
 	return entityData, ok
 }
