@@ -414,23 +414,23 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 	if openContainerId != 0 && len(itemInContainers) > 0 {
 		log.Logger.Println(player.GetName(), "has open container:", openContainerId, "while disconnecting, *prob trying to dupe*", lastLocationString)
 
-		utils.SendStaffAlertToDiscord("Disconnect with open container!", "A Player Has disconnected with an open container, please investigate!", 16711680, []map[string]interface{}{
-			{
-				"name":   "Player Name",
-				"value":  "```" + player.GetName() + "```",
-				"inline": true,
-			},
-			{
-				"name":   "Player Location",
-				"value":  "```" + lastLocationString + "```",
-				"inline": true,
-			},
-			{
-				"name":   "Item Count",
-				"value":  "```" + fmt.Sprintf("%d", len(itemInContainers)) + "```",
-				"inline": true,
-			},
-		})
+		// utils.SendStaffAlertToDiscord("Disconnect with open container!", "A Player Has disconnected with an open container, please investigate!", 16711680, []map[string]interface{}{
+		// 	{
+		// 		"name":   "Player Name",
+		// 		"value":  "```" + player.GetName() + "```",
+		// 		"inline": true,
+		// 	},
+		// 	{
+		// 		"name":   "Player Location",
+		// 		"value":  "```" + lastLocationString + "```",
+		// 		"inline": true,
+		// 	},
+		// 	{
+		// 		"name":   "Item Count",
+		// 		"value":  "```" + fmt.Sprintf("%d", len(itemInContainers)) + "```",
+		// 		"inline": true,
+		// 	},
+		// })
 
 		// Send Item Stack Requests to clear the container
 		// Send Item Request to clear container id 13 (crafting table)
