@@ -83,7 +83,7 @@ func FetchDatabase[T any](tableName string) (map[string]T, error) {
 	for i := 0; i < retryAttempts; i++ {
 		req, err := http.NewRequest("GET", uri, nil)
 		if err != nil {
-			log.Logger.Fatalln("Failed to create new request:", err)
+			log.Logger.Errorln("Failed to create new request:", err)
 			return nil, err
 		}
 
