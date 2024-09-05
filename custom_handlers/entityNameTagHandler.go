@@ -82,6 +82,8 @@ func getTranslatedNameTagOfSentOutPokemon(player human.Human, entityTypeId strin
 	// Example: "§lImpidimp §eLvl 25\nOwner not found§r"
 	// Example: "§lCharmander §eLvl 100\nSmell of curry§r"
 	// Example: "§lTaillow\n§eLvl 21§r"
+	// Example: "§lIron Treads\n§eLvl 21§r"
+	// Example: "§lMr. Mime §eLvl 100\nSmell of curry§r"
 	// Structure: "§l<Original Name> §eLvl <\d>\n<Other Information like Owner Name>§r"
 	// Structure: "§l<Original Name>\n§eLvl <\d>§r"
 
@@ -90,15 +92,11 @@ func getTranslatedNameTagOfSentOutPokemon(player human.Human, entityTypeId strin
 	lines := strings.Split(currentName, "\n")
 
 	if len(lines) > 0 {
-		// Replace the first part of the name in the first line with the translated name
-		// Handling case where name and additional info might be on the same line
-		if len(lines[0]) > 0 && strings.Contains(lines[0], " ") {
-			// There is additional info on the same line as the name
-			nameParts := strings.SplitN(lines[0], " ", 2)
-			nameParts[0] = "§l" + translatedName
-			lines[0] = strings.Join(nameParts, " ")
+		// Extract the level part to correctly replace the name
+		if strings.Contains(lines[0], "§eLvl") {
+			parts := strings.Split(lines[0], "§eLvl")
+			lines[0] = "§l" + translatedName + " §eLvl" + parts[1]
 		} else {
-			// Only the name is on this line
 			lines[0] = "§l" + translatedName
 		}
 
