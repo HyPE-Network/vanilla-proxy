@@ -72,6 +72,11 @@ func getEntityTranslatedName(player human.Human, entityTypeId string) (string, e
 
 // getTranslatedNameTagOfSentOutPokemon returns the translated name tag of a sent out pokemon.
 func getTranslatedNameTagOfSentOutPokemon(player human.Human, entityTypeId string, currentName string) (string, error) {
+	if strings.HasPrefix(currentName, "§l§n§r") {
+		// Name is nickname, do not translate
+		return currentName, nil
+	}
+
 	// Get the translated name of the pokemon
 	translatedName, err := getEntityTranslatedName(player, entityTypeId)
 	if err != nil {
