@@ -81,6 +81,7 @@ Server holds less essential server configuration that changes connection aspects
 - `Prefix` - Prefix is used to specify the current server in error logs. For example `TESTING` would be sent with a logging endpoint to tell readers this came from `TESTING` server.
 - `ViewDistance` - Manages the distance players can view through the chunk handler. This is important for large servers.
 - `Whitelist` - If the whitelist is turned on and limiting players from joining. Whitelist can be managed through the (whitelist.json)[whitelist.json] file.
+- `FlushRate` - The flush rate of the packets, default is `50` == `time.Second / 20`, the lower the value, the more CPU usage.
 
 ### WorldBorder
 

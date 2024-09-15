@@ -120,6 +120,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 		TexturePacksRequired:   true,
 		ErrorLog:               log.Logger,
 		Compression:            packet.FlateCompression,
+		FlushRate:              time.Millisecond * time.Duration(arg.Config.Server.FlushRate),
 	}.Listen("raknet", arg.Config.Connection.ProxyAddress)
 
 	if err != nil {

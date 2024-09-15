@@ -18,6 +18,7 @@ type Config struct {
 		Whitelist       bool
 		DisableXboxAuth bool
 		Prefix          string
+		FlushRate       int
 	}
 	WorldBorder struct {
 		Enabled bool

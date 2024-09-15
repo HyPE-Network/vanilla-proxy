@@ -28,6 +28,7 @@
   Prefix = "TESTING"
   ViewDistance = 10
   Whitelist = true
+  FlushRate = 50
 
 [WorldBorder]
   Enabled = true
