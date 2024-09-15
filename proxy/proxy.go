@@ -282,14 +282,20 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 	g.Add(2)
 	go func() {
 		if err := conn.StartGame(gameData); err != nil {
-			log.Logger.Errorln("Failed to start game on client:", err)
+			var disc minecraft.DisconnectError
+			if ok := errors.As(err, &disc); !ok {
+				log.Logger.Errorln("Failed to start game on client:", err)
+			}
 			success = false
 		}
 		g.Done()
 	}()
 	go func() {
 		if err := serverConn.DoSpawn(); err != nil {
-			log.Logger.Errorln("Failed to spawn on server:", err)
+			var disc minecraft.DisconnectError
+			if ok := errors.As(err, &disc); !ok {
+				log.Logger.Errorln("Failed to spawn client on server:", err)
+			}
 			success = false
 		}
 		g.Done()
@@ -393,7 +399,7 @@ func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) {
 	if ok := errors.As(err, &disc); ok {
 		arg.DisconnectPlayer(player, disc.Error())
 	}
-	if !strings.Contains(err.Error(), "use of closed network connection") {
+	if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "disconnect.kicked.reason") {
 		// Error is not a disconnect error, so log the error.
 		log.Logger.Errorln(msg, err)
 	}
