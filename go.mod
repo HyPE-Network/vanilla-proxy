@@ -31,4 +31,4 @@ require (
 
 replace github.com/sandertv/go-raknet => github.com/smell-of-curry/go-raknet v0.0.0-20240912233931-261cb93d1409
 
-replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921181652-f6e383973ea7
+replace github.com/sandertv/gophertunnel => github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921184245-ed4e2c537811

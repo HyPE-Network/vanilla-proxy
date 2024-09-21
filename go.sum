@@ -26,8 +26,8 @@ github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/smell-of-curry/go-raknet v0.0.0-20240912233931-261cb93d1409 h1:ZpIePIdZ+K11i7zycg9WMY/J/xfFQ0cUKTglECpqnN0=
 github.com/smell-of-curry/go-raknet v0.0.0-20240912233931-261cb93d1409/go.mod h1:/yysjwfCXm2+2OY8mBazLzcxJ3irnylKCyG3FLgUPVU=
-github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921181652-f6e383973ea7 h1:Gh1h9KSnbPNs+ZqvooTMIo2cB5gnl9VIdg9VbMUpwGA=
-github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921181652-f6e383973ea7/go.mod h1:dzdY+MuhjdZl6lohYlGciG0O0Z12F5Pr3VMOG2e0QZU=
+github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921184245-ed4e2c537811 h1:Phnw4pB8z1ezXWwPFyAeGoisWDQAE3rraekDzl6YlnY=
+github.com/smell-of-curry/gophertunnel v1.39.1-0.20240921184245-ed4e2c537811/go.mod h1:dzdY+MuhjdZl6lohYlGciG0O0Z12F5Pr3VMOG2e0QZU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
