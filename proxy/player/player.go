@@ -272,8 +272,7 @@ func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) prot
 	}
 	return protocol.StackRequestSlotInfo{
 		Container: protocol.FullContainerName{
-			ContainerID:        containerID,
-			DynamicContainerID: 0,
+			ContainerID: containerID,
 		},
 		Slot:           slot,
 		StackNetworkID: 0, // Empty
