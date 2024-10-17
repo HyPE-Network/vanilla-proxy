@@ -220,6 +220,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	if err != nil {
 		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
+		serverConn.Close()
 		return
 	}
 
