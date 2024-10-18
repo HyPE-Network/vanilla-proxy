@@ -4,12 +4,10 @@ import (
 	"math"
 
 	"github.com/HyPE-Network/vanilla-proxy/log"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/block"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/form"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
+	"github.com/HyPE-Network/vanilla-proxy/proxy/world"
 	"github.com/HyPE-Network/vanilla-proxy/utils"
 
 	"github.com/go-gl/mathgl/mgl32"
@@ -24,18 +22,30 @@ type Player struct {
 	PlayerData *data.PlayerData
 }
 
-func NewPlayer(name string, session *session.Session, gameData minecraft.GameData) *Player {
+// Creates a new player instance from a server conn
+func NewPlayer(conn *minecraft.Conn, session *session.Session) *Player {
+	parsedGameData := conn.GameData()
+	// Remove Items & Blocks from `parsedGameData` to reduce the size of the struct
+	parsedGameData.Items = nil
+	parsedGameData.CustomBlocks = nil
+
 	return &Player{
-		Name:    name,
+		Name:    conn.IdentityData().DisplayName,
 		Session: session,
 		PlayerData: &data.PlayerData{
-			GameData:         gameData,
-			Forms:            make(map[uint32]form.Form),
-			BrokenBlocks:     make(map[protocol.BlockPos]uint32),
+			GameData:         parsedGameData,
 			StartSessionTime: utils.GetTimestamp(),
 			Authorized:       false,
 		},
 	}
+}
+
+// Gets a player from a connection
+func GetPlayer(conn *minecraft.Conn, serverConn *minecraft.Conn) human.Human {
+	ab := session.NewBridge(conn, serverConn)
+	newSession := session.NewSession(conn, ab)
+	var pl human.Human = NewPlayer(conn, newSession)
+	return pl
 }
 
 func (player *Player) GetName() string {
@@ -71,58 +81,6 @@ func (player *Player) SendSound(sound string, volume float32, pitch float32) {
 	}
 
 	player.DataPacket(pk)
-}
-
-func (player *Player) HasScoreboard() bool {
-	return player.PlayerData.CurrentScoreboard.Load() != ""
-}
-
-func (player *Player) SendScoreboard(sb *scoreboard.Scoreboard) {
-	currentName, currentLines := player.PlayerData.CurrentScoreboard.Load(), player.PlayerData.CurrentLines.Load()
-
-	if currentName != sb.Name() {
-		player.RemoveScoreboard()
-		player.DataPacket(&packet.SetDisplayObjective{
-			DisplaySlot:   "sidebar",
-			ObjectiveName: sb.Name(),
-			DisplayName:   sb.Name(),
-			CriteriaName:  "dummy",
-		})
-		player.PlayerData.CurrentScoreboard.Store(sb.Name())
-		player.PlayerData.CurrentLines.Store(append([]string(nil), sb.Lines()...))
-	} else {
-		// Remove all current lines from the scoreboard. We can't replace them without removing them.
-		pk := &packet.SetScore{ActionType: packet.ScoreboardActionRemove}
-		for i := range currentLines {
-			pk.Entries = append(pk.Entries, protocol.ScoreboardEntry{
-				EntryID:       int64(i),
-				ObjectiveName: currentName,
-				Score:         int32(i),
-			})
-		}
-		if len(pk.Entries) > 0 {
-			player.DataPacket(pk)
-		}
-	}
-	pk := &packet.SetScore{ActionType: packet.ScoreboardActionModify}
-	for k, line := range sb.Lines() {
-		pk.Entries = append(pk.Entries, protocol.ScoreboardEntry{
-			EntryID:       int64(k),
-			ObjectiveName: sb.Name(),
-			Score:         int32(k),
-			IdentityType:  protocol.ScoreboardIdentityFakePlayer,
-			DisplayName:   line,
-		})
-	}
-	if len(pk.Entries) > 0 {
-		player.DataPacket(pk)
-	}
-}
-
-func (player *Player) RemoveScoreboard() {
-	player.DataPacket(&packet.RemoveObjective{ObjectiveName: player.PlayerData.CurrentScoreboard.Load()})
-	player.PlayerData.CurrentScoreboard.Store("")
-	player.PlayerData.CurrentLines.Store([]string{})
 }
 
 func (player *Player) Transfer(address string, port uint16) {
@@ -169,7 +127,7 @@ func (player *Player) DistanceXYZSquared(x float32, y float32, z float32) float6
 }
 
 func (player *Player) SendAirUpdate(pos protocol.BlockPos) {
-	player.SendUpdateBlock(pos, block.AirRID)
+	player.SendUpdateBlock(pos, world.AirRID)
 }
 
 func (player *Player) SendUpdateBlock(pos protocol.BlockPos, rid uint32) {
@@ -181,6 +139,10 @@ func (player *Player) SendUpdateBlock(pos protocol.BlockPos, rid uint32) {
 	}
 
 	player.DataPacket(pk)
+}
+
+func (player *Player) SetPlayerLocation(pos mgl32.Vec3) {
+	player.PlayerData.LastUpdatedLocation = pos
 }
 
 func (player *Player) InOverworld() bool {
@@ -226,10 +188,6 @@ func (player *Player) textPacket(message string, textType byte) {
 }
 
 func (player *Player) DataPacket(pk packet.Packet) {
-	if player.GetData().Closed {
-		return
-	}
-
 	if err := player.Session.Connection.ClientConn.WritePacket(pk); err != nil {
 		log.Logger.Errorln(err)
 	}
@@ -241,40 +199,97 @@ func (player *Player) DataPacketToServer(pk packet.Packet) {
 	}
 }
 
-func (player *Player) SendInventory(inv inventory.Inventory) {
-	updateBlock := &packet.UpdateBlock{
-		Position:          protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())},
-		NewBlockRuntimeID: block.GetRuntime(block.Chest),
-		Flags:             0,
-		Layer:             0,
+func (player *Player) PlaySound(soundName string, pos mgl32.Vec3, volume float32, pitch float32) {
+	pk := &packet.PlaySound{
+		SoundName: soundName,
+		Position:  pos,
+		Volume:    volume,
+		Pitch:     pitch,
 	}
 
-	if err := player.Session.Connection.ClientConn.WritePacket(updateBlock); err != nil {
-		log.Logger.Errorln(err)
+	player.DataPacket(pk)
+}
+
+func (player *Player) SendXUIDToAddon() {
+	playerXuid := player.GetSession().IdentityData.XUID
+	playerXuidTextPacket := &packet.Text{
+		TextType:         packet.TextTypeChat,
+		NeedsTranslation: false,
+		SourceName:       player.GetName(),
+		Message:          "[PROXY_SYSTEM] XUID=" + playerXuid,
+		Parameters:       nil,
+		XUID:             playerXuid,
+		PlatformChatID:   "",
 	}
+	player.DataPacketToServer(playerXuidTextPacket)
+}
 
-	inventoryId := player.PlayerData.GetNextWindowId()
+// SetOpenContainerWindowID sets the ID of the window that is currently open for the player.
+func (player *Player) SetOpenContainerWindowID(windowId byte) {
+	player.PlayerData.OpenContainerWindowId = windowId
+}
 
-	openInventory := &packet.ContainerOpen{
-		WindowID:                inventoryId,
-		ContainerType:           0,
-		ContainerPosition:       protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())},
-		ContainerEntityUniqueID: -1,
+func (player *Player) SetOpenContainerType(containerType byte) {
+	player.PlayerData.OpenContainerType = containerType
+}
+
+// SetLastItemStackRequestID sets the last item stack request ID that was sent by the player.
+func (player *Player) SetLastItemStackRequestID(id int32) {
+	player.PlayerData.LastItemStackRequestID = id
+}
+
+// GetNextItemStackRequestID returns the next item stack request ID that can be used by the player.
+func (player *Player) GetNextItemStackRequestID() int32 {
+	if player.PlayerData.LastItemStackRequestID == math.MaxInt32 {
+		player.PlayerData.LastItemStackRequestID = 0
 	}
+	player.PlayerData.LastItemStackRequestID -= 2
+	return player.PlayerData.LastItemStackRequestID
+}
 
-	if err := player.Session.Connection.ClientConn.WritePacket(openInventory); err != nil {
-		log.Logger.Errorln(err)
+// SetItemToContainerSlot sets the amount of items that are in the container slot that the player has put in.
+func (player *Player) SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo) {
+	// Find if the slot is already in this list, if so update, else append
+	for i, slot := range player.PlayerData.ItemsInContainers {
+		if slot.Container.ContainerID == slotInfo.Container.ContainerID && slot.Slot == slotInfo.Slot {
+			player.PlayerData.ItemsInContainers[i] = slotInfo
+			return
+		}
 	}
+	player.PlayerData.ItemsInContainers = append(player.PlayerData.ItemsInContainers, slotInfo)
+}
 
-	player.PlayerData.FakeChestOpen = true
-	player.PlayerData.FakeChestPos = protocol.BlockPos{int32(player.PlayerData.GameData.PlayerPosition.X()), int32(player.PlayerData.GameData.PlayerPosition.Y()), int32(player.PlayerData.GameData.PlayerPosition.Z())}
+func (player *Player) ClearItemsInContainers() {
+	player.PlayerData.ItemsInContainers = nil
+}
 
-	inventoryContent := &packet.InventoryContent{
-		WindowID: uint32(inventoryId),
-		Content:  inv.GetContent(),
+// GetItemsInContainerSlot returns the amount of items that are in the container slot that the player has put in.
+func (player *Player) GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo {
+	for _, slotInfo := range player.PlayerData.ItemsInContainers {
+		if slotInfo.Container.ContainerID == containerID && slotInfo.Slot == slot {
+			return slotInfo
+		}
 	}
-
-	if err := player.Session.Connection.ClientConn.WritePacket(inventoryContent); err != nil {
-		log.Logger.Errorln(err)
+	return protocol.StackRequestSlotInfo{
+		Container: protocol.FullContainerName{
+			ContainerID: containerID,
+		},
+		Slot:           slot,
+		StackNetworkID: 0, // Empty
 	}
+}
+
+// GetCursorItem returns the item that is currently in the cursor of the player.
+func (player *Player) GetCursorItem() protocol.StackRequestSlotInfo {
+	return player.GetItemFromContainerSlot(protocol.ContainerCursor, 0)
+}
+
+// IsBeingDisconnected returns true if the player is currently being disconnected from the server.
+func (player *Player) IsBeingDisconnected() bool {
+	return player.PlayerData.Disconnected
+}
+
+// SetDisconnected sets the disconnected state of the player. If true, the player is currently being disconnected
+func (player *Player) SetDisconnected(disconnected bool) {
+	player.PlayerData.Disconnected = disconnected
 }

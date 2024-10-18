@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/HyPE-Network/vanilla-proxy/handler"
 	"github.com/HyPE-Network/vanilla-proxy/log"
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
@@ -19,7 +21,7 @@ var target = []uint32{
 var ignored = []uint32{
 	packet.IDAnimate,
 	packet.IDSetActorData,
-	packet.IDMoveActorDelta,
+	packet.IDMoveDeltaActor,
 	packet.IDCreativeContent,
 	packet.IDCraftingData,
 	packet.IDBiomeDefinitionList,
@@ -29,7 +31,7 @@ var ignored = []uint32{
 	packet.IDSetActorMotion,
 	packet.IDUpdateAttributes,
 	packet.IDPlayerAuthInput,
-	packet.IDLevelChunk,
+	packet.IDFullChunkData,
 	packet.IDSubChunk,
 	packet.IDSubChunkRequest,
 }
@@ -50,24 +52,23 @@ func registerHandlers() map[uint32][]handler.PacketHandler {
 	if proxy.ProxyInstance.Worlds != nil {
 		handlers[packet.IDSubChunkRequest] = []handler.PacketHandler{SubChunkRequestHandler{}}
 		handlers[packet.IDSubChunk] = append(handlers[packet.IDSubChunk], SubChunkHandlerBoarder{})
-		handlers[packet.IDLevelChunk] = []handler.PacketHandler{LevelChunkHandler{}}
-		handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandlerBoarder{}}
+		handlers[packet.IDFullChunkData] = []handler.PacketHandler{LevelChunkHandler{}}
 		handlers[packet.IDInventoryTransaction] = []handler.PacketHandler{InventoryTransactionHandler{}}
 	}
 
-	handlers[packet.IDModalFormResponse] = []handler.PacketHandler{ModalFormResponseHandler{}}
+	// handlers[packet.IDModalFormResponse] = []handler.PacketHandler{ModalFormResponseHandler{}}
 	handlers[packet.IDPlayerAuthInput] = []handler.PacketHandler{PlayerInputHandler{}}
 
 	handlers[packet.IDChunkRadiusUpdated] = []handler.PacketHandler{UpdateRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
 	handlers[packet.IDRequestChunkRadius] = []handler.PacketHandler{RequestRadiusHandler{proxy.ProxyInstance.Config.Server.ViewDistance}}
 
-	handlers[packet.IDContainerClose] = []handler.PacketHandler{CloseInventoryHandler{}}
-	handlers[packet.IDContainerOpen] = []handler.PacketHandler{OpenInventoryHandler{}}
-
-	handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
-	handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
+	// handlers[packet.IDCommandRequest] = []handler.PacketHandler{CommandRequestHandler{}}
+	// handlers[packet.IDAvailableCommands] = []handler.PacketHandler{AvailableCommandsHandler{}}
 
 	handlers[packet.IDPacketViolationWarning] = []handler.PacketHandler{MalformedHandler{}}
+
+	handlers[packet.IDAddActor] = []handler.PacketHandler{AddActorHandler{}}
+	handlers[packet.IDRemoveActor] = []handler.PacketHandler{RemoveActorHandler{}}
 
 	return handlers
 }
@@ -90,6 +91,10 @@ func (hm handlerManager) HandlePacket(pk packet.Packet, player human.Human, send
 		sendDebug(pk, sender)
 	}
 
+	if hm.PacketHandlers == nil {
+		return false, pk, fmt.Errorf("packet handlers map is nil")
+	}
+
 	packetHandlers, hasHandler := hm.PacketHandlers[pk.ID()]
 	if hasHandler {
 		for _, packetHandler := range packetHandlers {
@@ -97,6 +102,9 @@ func (hm handlerManager) HandlePacket(pk packet.Packet, player human.Human, send
 				sendPacket, pk, err = packetHandler.Handle(pk, player)
 			} else {
 				_, pk, err = packetHandler.Handle(pk, player)
+			}
+			if err != nil {
+				return false, pk, err
 			}
 		}
 	}

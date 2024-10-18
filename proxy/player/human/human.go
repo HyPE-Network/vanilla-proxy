@@ -1,13 +1,10 @@
 package human
 
 import (
-	"github.com/HyPE-Network/vanilla-proxy/proxy/inventory"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/data"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/player/scoreboard"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/session"
 
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -22,10 +19,6 @@ type Human interface {
 	SendPopup(string)
 	SendTip(string)
 
-	HasScoreboard() bool
-	SendScoreboard(*scoreboard.Scoreboard)
-	RemoveScoreboard()
-
 	Transfer(string, uint16)
 
 	Kick()
@@ -37,11 +30,15 @@ type Human interface {
 	SendUpdateBlock(protocol.BlockPos, uint32)
 	SendAirUpdate(protocol.BlockPos)
 
+	PlaySound(string, mgl32.Vec3, float32, float32)
+
 	InOverworld() bool
 	InNether() bool
 	InEnd() bool
 	GetDimension() int32
 	GetWorldName() string
+
+	SetPlayerLocation(mgl32.Vec3)
 
 	GetPing() int64
 	GetSessionTime() int64
@@ -49,16 +46,17 @@ type Human interface {
 	DataPacket(packet.Packet)
 	DataPacketToServer(packet.Packet)
 
-	SendInventory(inventory.Inventory)
-}
+	SendXUIDToAddon()
 
-type HumanManager interface {
-	AddPlayer(*minecraft.Conn, *minecraft.Conn) Human
-	DeletePlayer(Human)
-	DeleteAll()
-	GetPlayer(string) Human
-	GetPlayerExact(string) Human
-	PlayerList() map[string]Human
-	PlayersCount() int
-	IsOnline(string) bool
+	SetOpenContainerWindowID(windowId byte)
+	SetOpenContainerType(containerType byte)
+	SetLastItemStackRequestID(id int32)
+	GetNextItemStackRequestID() int32
+	SetItemToContainerSlot(slotInfo protocol.StackRequestSlotInfo)
+	ClearItemsInContainers()
+	GetItemFromContainerSlot(containerID byte, slot byte) protocol.StackRequestSlotInfo
+	GetCursorItem() protocol.StackRequestSlotInfo
+
+	IsBeingDisconnected() bool
+	SetDisconnected(disconnected bool)
 }

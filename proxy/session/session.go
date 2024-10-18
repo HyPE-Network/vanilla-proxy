@@ -11,7 +11,9 @@ type Session struct {
 	Connection   *Bridge
 }
 
-func NewSession(identityData login.IdentityData, clientData login.ClientData, connection *Bridge) *Session {
+func NewSession(conn *minecraft.Conn, connection *Bridge) *Session {
+	identityData := conn.IdentityData()
+	clientData := conn.ClientData()
 	return &Session{IdentityData: identityData, ClientData: clientData, Connection: connection}
 }
 

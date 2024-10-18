@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/HyPE-Network/vanilla-proxy/proxy"
-	"github.com/HyPE-Network/vanilla-proxy/proxy/block/cube"
 	"github.com/HyPE-Network/vanilla-proxy/proxy/player/human"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -18,9 +17,7 @@ func (InventoryTransactionHandler) Handle(pk packet.Packet, player human.Human) 
 	switch td := dataPacket.TransactionData.(type) {
 	case *protocol.UseItemTransactionData:
 		if td.ActionType == protocol.UseItemActionClickBlock {
-			pos := cube.Side(td.BlockPosition, td.BlockFace)
-
-			if !proxy.ProxyInstance.Worlds.Border.IsXZInside(pos.X(), pos.Z()) {
+			if !proxy.ProxyInstance.Worlds.Border.IsXZInside(td.BlockPosition.X(), td.BlockPosition.Z()) {
 				player.SendMessage("§cActions outside the world are prohibited!")
 				return false, pk, nil
 			}
