@@ -25,13 +25,15 @@ type Player struct {
 }
 
 func NewPlayer(name string, session *session.Session, gameData minecraft.GameData) *Player {
+	gameData.Items = nil
+	gameData.CustomBlocks = nil
+
 	return &Player{
 		Name:    name,
 		Session: session,
 		PlayerData: &data.PlayerData{
 			GameData:         gameData,
 			Forms:            make(map[uint32]form.Form),
-			BrokenBlocks:     make(map[protocol.BlockPos]uint32),
 			StartSessionTime: utils.GetTimestamp(),
 			Authorized:       false,
 		},

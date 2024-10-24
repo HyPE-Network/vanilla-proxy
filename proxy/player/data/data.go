@@ -13,7 +13,6 @@ type PlayerData struct {
 	GameData          minecraft.GameData
 	Forms             map[uint32]form.Form
 	Closed            bool
-	BrokenBlocks      map[protocol.BlockPos]uint32
 	CurrentScoreboard atomic.Value[string]
 	CurrentLines      atomic.Value[[]string]
 	StartSessionTime  int64

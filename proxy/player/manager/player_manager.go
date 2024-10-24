@@ -59,7 +59,9 @@ func (pm *PlayerManager) GetPlayer(name string) human.Human {
 				found = pl
 				dt = cdt
 			}
+
 			if cdt == 0 {
+				found = pl
 				break
 			}
 		}
