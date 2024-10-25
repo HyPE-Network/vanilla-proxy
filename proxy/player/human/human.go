@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/sandertv/gophertunnel/minecraft"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/login"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -53,7 +54,8 @@ type Human interface {
 }
 
 type HumanManager interface {
-	AddPlayer(*minecraft.Conn, *minecraft.Conn) Human
+	AddPlayer(*minecraft.Conn, *minecraft.Conn, login.ClientData) Human
+	ProcessingPlayerData(*login.ClientData, *login.IdentityData)
 	DeletePlayer(Human)
 	DeleteAll()
 	GetPlayer(string) Human

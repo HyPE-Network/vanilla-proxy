@@ -57,7 +57,7 @@ func ReadConfig() Config {
 		if _, err := f.Write(data); err != nil {
 			log.Fatalf("error writing encoded default config: %v", err)
 		}
-		_ = f.Close()
+		f.Close()
 	}
 
 	data, err := os.ReadFile("config.toml")

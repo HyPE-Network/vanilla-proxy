@@ -136,10 +136,14 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		return
 	}
 
+	cd := conn.ClientData()
+	idata := conn.IdentityData()
+	arg.PlayerManager.ProcessingPlayerData(&cd, &idata)
+
 	serverConn, err := minecraft.Dialer{
 		KeepXBLIdentityData: true,
-		ClientData:          conn.ClientData(),
-		IdentityData:        conn.IdentityData(),
+		ClientData:          cd,
+		IdentityData:        idata,
 	}.Dial("raknet", arg.Config.Connection.RemoteAddress)
 
 	if err != nil {
@@ -182,7 +186,7 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}
 
-	pl := arg.PlayerManager.AddPlayer(conn, serverConn)
+	pl := arg.PlayerManager.AddPlayer(conn, serverConn, cd)
 	log.Logger.Infoln(pl.GetName(), "joined the server")
 
 	go func() { // client-proxy
