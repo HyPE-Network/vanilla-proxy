@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -133,7 +134,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Logger.Errorf("Recovered from panic in Handling Listener: %v", r)
+			log.Logger.Errorf("Recovered from panic in Handling Listener: %v\n%s", r, debug.Stack())
 		}
 		log.Logger.Errorf("Closing listener: %v", arg.Listener.Close())
 	}()
@@ -165,7 +166,7 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Logger.Errorf("Recovered from panic in handleConn: %v", r)
+			log.Logger.Errorf("Recovered from panic in handleConn: %v\n%s", r, debug.Stack())
 			arg.Listener.Disconnect(conn, "An internal error occurred")
 		}
 	}()
@@ -316,7 +317,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 	go func() { // client->proxy
 		defer func() {
 			if r := recover(); r != nil {
-				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v", r)
+				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v\n%s", r, debug.Stack())
 				arg.DisconnectPlayer(player, "An internal error occurred")
 			} else {
 				arg.DisconnectPlayer(player, "Client Connection closed")
@@ -352,7 +353,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 	go func() { // proxy->server
 		defer func() {
 			if r := recover(); r != nil {
-				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v", r)
+				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v\n%s", r, debug.Stack())
 				arg.DisconnectPlayer(player, "An internal error occurred")
 			} else {
 				arg.DisconnectPlayer(player, "Server Connection closed")
