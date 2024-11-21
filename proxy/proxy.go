@@ -171,6 +171,11 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 		}
 	}()
 
+	if conn == nil {
+		log.Logger.Warnln("Received nil connection. Skipping handling.")
+		return
+	}
+
 	go func() {
 		<-arg.ctx.Done()
 		conn.Close() // Ensure the connection is closed when context is cancelled
@@ -316,12 +321,16 @@ func (arg *Proxy) initializeConnection(conn *minecraft.Conn, serverConn *minecra
 func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, serverConn *minecraft.Conn) {
 	go func() { // client->proxy
 		defer func() {
+			reason := "Client Connection closed"
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Client: %v\n%s", r, debug.Stack())
-				arg.DisconnectPlayer(player, "An internal error occurred")
-			} else {
-				arg.DisconnectPlayer(player, "Client Connection closed")
+				reason = "An internal error occurred"
 			}
+
+			// Order is Important. We want to close the client connection first
+			arg.PrePlayerDisconnect(player)
+			arg.Listener.Disconnect(conn, reason)
+			serverConn.Close()
 		}()
 
 		for {
@@ -331,7 +340,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			default:
 				pk, err := conn.ReadPacket()
 				if err != nil {
-					arg.handlePacketError(err, player, "Failed to read packet from client")
+					arg.handlePacketError(err, conn, "Failed to read packet from client")
 					return
 				}
 
@@ -342,7 +351,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 
 				if ok {
 					if err := serverConn.WritePacket(pk); err != nil {
-						arg.handlePacketError(err, player, "Failed to write packet to proxy")
+						arg.handlePacketError(err, conn, "Failed to write packet to proxy")
 						return
 					}
 				}
@@ -352,12 +361,16 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 
 	go func() { // proxy->server
 		defer func() {
+			reason := "Server Connection closed"
 			if r := recover(); r != nil {
 				log.Logger.Errorf("Recovered from panic in HandlePacket from Server: %v\n%s", r, debug.Stack())
-				arg.DisconnectPlayer(player, "An internal error occurred")
-			} else {
-				arg.DisconnectPlayer(player, "Server Connection closed")
+				reason = "An internal error occurred"
 			}
+
+			// Order is Important. We want to close the server connection first
+			arg.PrePlayerDisconnect(player)
+			serverConn.Close()
+			arg.Listener.Disconnect(conn, reason)
 		}()
 
 		for {
@@ -367,7 +380,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 			default:
 				pk, err := serverConn.ReadPacket()
 				if err != nil {
-					arg.handlePacketError(err, player, "Failed to read packet from proxy")
+					arg.handlePacketError(err, conn, "Failed to read packet from proxy")
 					return
 				}
 
@@ -378,7 +391,7 @@ func (arg *Proxy) startPacketHandlers(player human.Human, conn *minecraft.Conn, 
 
 				if ok {
 					if err := conn.WritePacket(pk); err != nil {
-						arg.handlePacketError(err, player, "Failed to write packet to server")
+						arg.handlePacketError(err, conn, "Failed to write packet to server")
 						return
 					}
 				}
@@ -396,10 +409,10 @@ func (arg *Proxy) Shutdown() {
 }
 
 // handlePacketError handles an error that occurred while reading a packet.
-func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) {
+func (arg *Proxy) handlePacketError(err error, conn *minecraft.Conn, msg string) {
 	var disc minecraft.DisconnectError
 	if ok := errors.As(err, &disc); ok {
-		arg.DisconnectPlayer(player, disc.Error())
+		arg.Listener.Disconnect(conn, disc.Error())
 	}
 	if !strings.Contains(err.Error(), "use of closed network connection") && !strings.Contains(err.Error(), "disconnect.kicked.reason") {
 		// Error is not a disconnect error, so log the error.
@@ -407,8 +420,8 @@ func (arg *Proxy) handlePacketError(err error, player human.Human, msg string) {
 	}
 }
 
-// DisconnectPlayer disconnects a player from the proxy.
-func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
+// PrePlayerDisconnect handles last second checks before a player disconnects.
+func (arg *Proxy) PrePlayerDisconnect(player human.Human) {
 	// Send close container packet
 	if player.IsBeingDisconnected() {
 		return // Player is already being disconnected, ignore this call
@@ -490,34 +503,6 @@ func (arg *Proxy) DisconnectPlayer(player human.Human, message string) {
 			},
 		})
 	}
-	log.Logger.Debugln("Disconnecting player:", player.GetName(), "with reason:", message)
-
-	// Disconnect
-	serverConn := player.GetSession().Connection.ServerConn
-	clientConn := player.GetSession().Connection.ClientConn
-
-	// Order is important here, as the server needs to properly exit.
-	var listenerErr error
-	var serverErr error
-
-	if message == "Client Connection closed" {
-		listenerErr = arg.Listener.Disconnect(clientConn, message)
-		serverErr = serverConn.Close()
-	} else if message == "Server Connection closed" {
-		serverErr = serverConn.Close()
-		listenerErr = arg.Listener.Disconnect(clientConn, message)
-	} else {
-		// Should just be a normal disconnect
-		listenerErr = arg.Listener.Disconnect(clientConn, message)
-	}
-
-	if listenerErr != nil {
-		log.Logger.Errorln("Failed to disconnect client from listener:", listenerErr)
-	}
-	if serverErr != nil {
-		log.Logger.Errorln("Failed to disconnect server connection:", serverErr)
-	}
-
 }
 
 type PlayerDetails struct {
