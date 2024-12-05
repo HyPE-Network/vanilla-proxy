@@ -156,6 +156,12 @@ func (arg *Proxy) Start(h handler.HandlerManager) error {
 
 				return arg.Start(h)
 			}
+
+			if c == nil {
+				log.Logger.Warnln("Accepted a nil connection.")
+				continue
+			}
+
 			log.Logger.Debugln("New connection from", c.RemoteAddr())
 			go arg.handleConn(c.(*minecraft.Conn))
 		}
@@ -167,7 +173,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Logger.Errorf("Recovered from panic in handleConn: %v\n%s", r, debug.Stack())
-			arg.Listener.Disconnect(conn, "An internal error occurred")
+			if conn != nil {
+				arg.Listener.Disconnect(conn, "An internal error occurred")
+			}
 		}
 	}()
 
@@ -178,7 +186,9 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	go func() {
 		<-arg.ctx.Done()
-		conn.Close() // Ensure the connection is closed when context is cancelled
+		if conn != nil {
+			conn.Close() // Ensure the connection is closed when context is cancelled
+		}
 	}()
 
 	playerWhitelisted := arg.WhitelistManager.HasPlayer(conn.IdentityData().DisplayName, conn.IdentityData().XUID)
@@ -226,7 +236,6 @@ func (arg *Proxy) handleConn(conn *minecraft.Conn) {
 
 	if err != nil {
 		arg.Listener.Disconnect(conn, strings.Split(err.Error(), ": ")[1])
-		serverConn.Close()
 		return
 	}
 
