@@ -18,24 +18,29 @@ func (PlayerInputHandler) Handle(pk packet.Packet, player human.Human) (bool, pa
 	player.SetPlayerLocation(dataPacket.Position)
 
 	// Verify new position
-	if proxy.ProxyInstance.Worlds != nil && !proxy.ProxyInstance.Worlds.Border.IsXZInside(int32(dataPacket.Position.X()), int32(dataPacket.Position.Z())) {
-		player.SendMessage("§cYou cannot move outside the world!")
-		player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
-		movePlayerPk := &packet.MovePlayer{
-			EntityRuntimeID: playerData.EntityRuntimeID,
-			Position:        playerData.PlayerPosition,
-			Pitch:           playerData.Pitch,
-			Yaw:             playerData.Yaw,
-			HeadYaw:         playerData.Yaw,
-			OnGround:        true,
-			Mode:            packet.MoveModeTeleport,
-			TeleportCause:   packet.TeleportCauseCommand,
-			Tick:            dataPacket.ClientTick,
-		}
-		player.DataPacket(movePlayerPk)
+	// if proxy.ProxyInstance.Worlds != nil && !proxy.ProxyInstance.Worlds.Border.IsXZInside(int32(dataPacket.Position.X()), int32(dataPacket.Position.Z())) {
+	// 	player.SendMessage("§cYou cannot move outside the world!")
+	// 	player.PlaySound("note.bass", playerData.PlayerPosition, 1, 1)
+	// 	movePlayerPk := &packet.MovePlayer{
+	// 		EntityRuntimeID: playerData.EntityRuntimeID,
+	// 		Position:        playerData.PlayerPosition,
+	// 		Pitch:           playerData.Pitch,
+	// 		Yaw:             playerData.Yaw,
+	// 		HeadYaw:         playerData.Yaw,
+	// 		OnGround:        true,
+	// 		Mode:            packet.MoveModeTeleport,
+	// 		TeleportCause:   packet.TeleportCauseCommand,
+	// 		Tick:            dataPacket.ClientTick,
+	// 	}
+	// 	player.DataPacket(movePlayerPk)
 
-		return false, pk, nil
-	}
+	// 	// If player is in a vehicle, when they get teleported back they will stay in vehicle, so we need to
+	// 	// tell the server/client to kick the player out of the vehicle.
+	// 	jumpPacket := &packet.PassengerJump{}
+	// 	player.DataPacketToServer(jumpPacket)
+
+	// 	return false, pk, nil
+	// }
 
 	player.GetData().GameData.Pitch, player.GetData().GameData.Yaw = dataPacket.Pitch, dataPacket.Yaw
 	player.GetData().GameData.PlayerPosition = dataPacket.Position
